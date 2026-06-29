@@ -4,7 +4,9 @@ import User from '@/lib/models/User';
 import SpoofLog from '@/lib/models/SpoofLog';
 import Transaction from '@/lib/models/Transaction';
 import { requireAuth } from '@/lib/auth';
-import { parseAssetInput, downloadAsset, uploadAsset } from '@/lib/roblox';
+import { parseAssetInput, getAssetInfo, downloadAsset, uploadAsset, checkOperation } from '@/lib/roblox';
+
+export const maxDuration = 60; // Vercel Pro: 60s timeout
 
 export async function POST(request) {
   try {
@@ -28,6 +30,14 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'No valid assets found in input' }, { status: 400 });
     }
 
+    // Limit per batch (Vercel timeout)
+    if (assets.length > 20) {
+      return NextResponse.json({
+        success: false,
+        error: `Max 20 assets per batch. Got ${assets.length}. Split into multiple batches.`,
+      }, { status: 400 });
+    }
+
     if (user.coins < assets.length) {
       return NextResponse.json({
         success: false,
@@ -41,6 +51,8 @@ export async function POST(request) {
 
     for (const asset of assets) {
       const startTime = Date.now();
+
+      // Create pending log
       const log = await SpoofLog.create({
         userId: user._id,
         originalAssetId: asset.id,
@@ -49,47 +61,85 @@ export async function POST(request) {
       });
 
       try {
+        // Step 1: Get asset info (type, real name)
+        let assetInfo;
+        try {
+          assetInfo = await getAssetInfo(asset.id);
+          log.assetName = assetInfo.name || asset.name;
+        } catch {
+          // If we can't get info, proceed with defaults
+          assetInfo = { assetType: 'Model', isAnimation: false, name: asset.name };
+        }
+
+        // Step 2: Download asset
         const downloaded = await downloadAsset(asset.id);
+        log.fileSize = downloaded.size;
+
+        // Step 3: Upload to user's account
         const uploaded = await uploadAsset(
           user.robloxApiKey,
           user.robloxId,
-          'Model',
-          asset.name,
+          assetInfo.assetType,
+          assetInfo.name || asset.name,
+          `Spoofed from ${asset.id}`,
           downloaded.buffer
         );
 
+        // Step 4: Check if upload needs async resolution
+        let finalAssetId = uploaded.assetId;
+        if (!finalAssetId && uploaded.operationId) {
+          // Wait a bit then check operation
+          await new Promise(r => setTimeout(r, 2000));
+          const opResult = await checkOperation(user.robloxApiKey, uploaded.operationId);
+          if (opResult) {
+            finalAssetId = opResult.assetId;
+            if (opResult.error) throw new Error(opResult.error);
+          } else {
+            finalAssetId = `pending:${uploaded.operationId}`;
+          }
+        }
+
+        // Success
         log.status = 'success';
-        log.newAssetId = uploaded.assetId || 'pending';
-        log.fileSize = downloaded.size;
+        log.newAssetId = String(finalAssetId || 'processing');
         log.duration = Date.now() - startTime;
         await log.save();
         successCount++;
 
         results.push({
-          assetName: asset.name,
+          assetName: log.assetName,
           originalId: asset.id,
-          newId: uploaded.assetId,
+          newId: finalAssetId,
           status: 'success',
+          assetType: assetInfo.assetType,
+          isAnimation: assetInfo.isAnimation,
           fileSize: downloaded.size,
           duration: log.duration,
         });
+
       } catch (err) {
         log.status = 'failed';
-        log.error = err.message;
+        log.error = err.message?.substring(0, 500);
         log.duration = Date.now() - startTime;
         await log.save();
         failCount++;
 
         results.push({
-          assetName: asset.name,
+          assetName: log.assetName || asset.name,
           originalId: asset.id,
           status: 'failed',
           error: err.message,
           duration: log.duration,
         });
       }
+
+      // Small delay between assets to avoid rate limiting
+      if (assets.indexOf(asset) < assets.length - 1) {
+        await new Promise(r => setTimeout(r, 500));
+      }
     }
 
+    // Deduct coins for successful spoofs
     if (successCount > 0) {
       user.coins -= successCount;
       await user.save();
@@ -98,7 +148,7 @@ export async function POST(request) {
         userId: user._id,
         type: 'spend',
         amount: -successCount,
-        description: `Spoofed ${successCount} asset(s)`,
+        description: `Spoofed ${successCount} asset(s) (${failCount} failed)`,
       });
     }
 
