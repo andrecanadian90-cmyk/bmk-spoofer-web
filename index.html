@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMK Spoofer — Bypass & Refake Any Banned or Disabled Devices</title>
+    <meta name="description" content="BMK Spoofer — The most advanced spoofing tool to bypass and refake any banned or disabled devices in any services. Bulk spoof, auto-upload, real-time logs.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <div class="logo-icon">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="url(#logoGrad)" stroke-width="2" fill="none"/>
+                        <path d="M14 8L20 11V17L14 20L8 17V11L14 8Z" fill="url(#logoGrad)"/>
+                        <defs><linearGradient id="logoGrad" x1="2" y1="2" x2="26" y2="26"><stop stop-color="#39FF14"/><stop offset="1" stop-color="#00E5FF"/></linearGradient></defs>
+                    </svg>
+                </div>
+                <span class="logo-text">BMK<span class="logo-accent">Spoofer</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#dashboard" class="nav-link">Dashboard</a>
+                <a href="#bypass" class="nav-link">Bypass</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="#faq" class="nav-link">FAQ</a>
+            </div>
+            <div class="nav-actions">
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    <span>STATUS: ONLINE</span>
+                </div>
+                <a href="#pricing" class="btn btn-primary btn-nav">Get Access</a>
+            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#features" class="mobile-link">Features</a>
+        <a href="#dashboard" class="mobile-link">Dashboard</a>
+        <a href="#bypass" class="mobile-link">Bypass</a>
+        <a href="#pricing" class="mobile-link">Pricing</a>
+        <a href="#faq" class="mobile-link">FAQ</a>
+        <a href="#pricing" class="btn btn-primary" style="width:100%;text-align:center;margin-top:1rem;">Get Access</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    <span>v3.2 — Latest Update</span>
+                </div>
+                <h1 class="hero-title">
+                    <span class="title-line">BMK</span>
+                    <span class="title-line title-accent">Spoofer</span>
+                </h1>
+                <p class="hero-subtitle">Bypass and Refake any banned or disabled devices in any services. Bulk spoof assets, auto-upload to Roblox Open Cloud, real-time execution logs.</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" data-count="15420">0</span>
+                        <span class="stat-label">Active Users</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" data-count="99.3">0</span>
+                        <span class="stat-label">Success Rate %</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" data-count="2847">0</span>
+                        <span class="stat-label">Assets Spoofed Today</span>
+                    </div>
+                </div>
+                <div class="hero-actions">
+                    <a href="#pricing" class="btn btn-primary btn-lg">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L13 8H18L14 12L15.5 18L10 14.5L4.5 18L6 12L2 8H7L10 2Z" fill="currentColor"/></svg>
+                        Get Started
+                    </a>
+                    <a href="#dashboard" class="btn btn-outline btn-lg">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><polygon points="8,4 16,10 8,16" fill="currentColor"/></svg>
+                        Live Demo
+                    </a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="dashboard-preview">
+                    <div class="preview-header">
+                        <div class="preview-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <span class="preview-title">BMK Spoofer — Dashboard</span>
+                    </div>
+                    <div class="preview-body">
+                        <div class="preview-topbar">
+                            <span class="preview-logo">BMK Spoofer</span>
+                            <div class="preview-status">
+                                <span class="coins-badge">● 250 COINS</span>
+                                <span class="connected-badge">● CONNECTED</span>
+                            </div>
+                        </div>
+                        <div class="preview-account">
+                            <div class="avatar-placeholder"></div>
+                            <div class="account-info">
+                                <div class="account-name">Zecoo</div>
+                                <div class="account-id">@ZecooRBX • ID: 10178074818</div>
+                            </div>
+                        </div>
+                        <div class="preview-stats-row">
+                            <div class="mini-stat"><span class="mini-val">273</span><span class="mini-lbl">Total Assets</span></div>
+                            <div class="mini-stat"><span class="mini-val success">271</span><span class="mini-lbl">Successful</span></div>
+                            <div class="mini-stat"><span class="mini-val fail">0</span><span class="mini-lbl">Failed</span></div>
+                        </div>
+                        <div class="preview-logs">
+                            <div class="log-line"><span class="log-time">14:42:56</span><span class="log-status">SUCCESS</span><span class="log-msg">"Sonic Pose" → Downloaded 6.92 KB</span></div>
+                            <div class="log-line"><span class="log-time">14:42:56</span><span class="log-status">SUCCESS</span><span class="log-msg">"Jojo Pose" → Downloaded 7.83 KB</span></div>
+                            <div class="log-line"><span class="log-time">14:42:56</span><span class="log-status">SUCCESS</span><span class="log-msg">"Clean Kicks" → Downloaded 56.81 KB</span></div>
+                            <div class="log-line"><span class="log-time">14:42:56</span><span class="log-status">SUCCESS</span><span class="log-msg">"Cannonball" → Downloaded 288.78 KB</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Features</span>
+                <h2 class="section-title">Powerful Spoofing <span class="text-accent">Engine</span></h2>
+                <p class="section-desc">Everything you need to bypass restrictions and manage your assets at scale.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card feature-card-lg">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="currentColor" stroke-width="2"/><path d="M16 12L22 15V21L16 24L10 21V15L16 12Z" fill="currentColor" opacity="0.3"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg>
+                    </div>
+                    <h3 class="feature-title">Bulk Spoof Engine</h3>
+                    <p class="feature-desc">Input LUA table format or raw asset IDs and spoof hundreds of items in a single queue. Batch processing with parallel execution for maximum throughput.</p>
+                    <div class="feature-tag-row">
+                        <span class="feature-tag">LUA Support</span>
+                        <span class="feature-tag">Raw IDs</span>
+                        <span class="feature-tag">Parallel</span>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="8" width="24" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M4 14H28" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="11" r="1" fill="currentColor"/><circle cx="12" cy="11" r="1" fill="currentColor"/></svg>
+                    </div>
+                    <h3 class="feature-title">Real-Time Logs</h3>
+                    <p class="feature-desc">Live execution logs with timestamps, status indicators, file sizes, and searchable history.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4V16L22 22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="16" r="12" stroke="currentColor" stroke-width="2"/></svg>
+                    </div>
+                    <h3 class="feature-title">Auto Upload</h3>
+                    <p class="feature-desc">Direct upload to Roblox Open Cloud API. No manual steps — spoofed assets deploy instantly to your account.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M8 16H24M16 8V24" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="4" y="4" width="24" height="24" rx="4" stroke="currentColor" stroke-width="2"/></svg>
+                    </div>
+                    <h3 class="feature-title">Deployment Summary</h3>
+                    <p class="feature-desc">Track total attempts, success rates, failed items, and last-spoofed timestamps in a clean dashboard.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 6L20 14H26L21 19L23 27L16 22L9 27L11 19L6 14H12L16 6Z" stroke="currentColor" stroke-width="2" fill="currentColor" opacity="0.2"/></svg>
+                    </div>
+                    <h3 class="feature-title">99.3% Success Rate</h3>
+                    <p class="feature-desc">Industry-leading spoof accuracy. Failed attempts auto-retry with exponential backoff.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="6" y="14" width="6" height="12" rx="1" fill="currentColor" opacity="0.3"/><rect x="13" y="10" width="6" height="16" rx="1" fill="currentColor" opacity="0.5"/><rect x="20" y="6" width="6" height="20" rx="1" fill="currentColor" opacity="0.8"/></svg>
+                    </div>
+                    <h3 class="feature-title">Progress Tracking</h3>
+                    <p class="feature-desc">Visual progress bars, time-elapsed counters, and per-item status monitoring in real time.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Preview Section -->
+    <section class="dashboard-section" id="dashboard">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Dashboard</span>
+                <h2 class="section-title">Full Control <span class="text-accent">Panel</span></h2>
+                <p class="section-desc">A powerful dashboard designed for speed and efficiency. Manage everything from one place.</p>
+            </div>
+            <div class="dashboard-demo">
+                <div class="demo-window">
+                    <div class="demo-chrome">
+                        <div class="chrome-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <div class="chrome-url">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1C3.69 1 1 3.69 1 7C1 10.31 3.69 13 7 13C10.31 13 13 10.31 13 7C13 3.69 10.31 1 7 1Z" stroke="#39FF14" stroke-width="1.5"/><path d="M5 7L7 9L10 5" stroke="#39FF14" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            <span>app.bmkspoofer.io/dashboard</span>
+                        </div>
+                    </div>
+                    <div class="demo-body">
+                        <!-- Dashboard Header -->
+                        <div class="dash-header">
+                            <div class="dash-brand">
+                                <span class="dash-logo">BMK</span> Spoofer
+                            </div>
+                            <div class="dash-header-right">
+                                <div class="coins-display">
+                                    <span class="coin-dot">●</span> 250 COINS
+                                </div>
+                                <button class="btn-topup">TOP UP</button>
+                                <div class="status-connected">
+                                    <span class="conn-dot"></span> STATUS: CONNECTED
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account Details -->
+                        <div class="dash-section">
+                            <div class="dash-section-title">Roblox Accounts Details <span class="refresh-icon">↻</span></div>
+                            <div class="account-card">
+                                <div class="account-left">
+                                    <div class="account-avatar">
+                                        <div class="avatar-img">Z</div>
+                                    </div>
+                                    <div class="account-details">
+                                        <div class="account-display-name">Zecoo</div>
+                                        <div class="account-meta">
+                                            <span>Username <strong>@ZecooRBX</strong></span>
+                                            <span>Roblox ID <strong>10178074818</strong> 📋</span>
+                                            <span>Account <strong>zecoo.store@gmail.com</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stats-row">
+                                <div class="stat-box">
+                                    <div class="stat-icon">📦</div>
+                                    <div class="stat-number">273</div>
+                                    <div class="stat-text">Total Assets</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-icon">✅</div>
+                                    <div class="stat-number stat-success">271</div>
+                                    <div class="stat-text">Successful</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-icon">❌</div>
+                                    <div class="stat-number stat-fail">0</div>
+                                    <div class="stat-text">Failed</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Grid -->
+                        <div class="dash-grid">
+                            <!-- Bulk Spoof -->
+                            <div class="dash-panel">
+                                <div class="panel-title">Bulk Spoof</div>
+                                <div class="panel-subtitle">Input assets LUA table or raw IDs queue to start bypass spoofer.</div>
+                                <div class="code-input">
+                                    <div class="code-label">Assets Input List</div>
+                                    <div class="code-block">
+                                        <code>{ "Jojo Pose", 11564428254632 },</code>
+                                        <code>{ "Denbow Suave", 13889954367958 },</code>
+                                        <code>{ "Denbow - De Lado", 95896658401523 },</code>
+                                        <code>{ "Gangstar dance", 97941264864007 },</code>
+                                        <code>{ "Clean Kicks", 12820096568127 },</code>
+                                        <code>{ "Cannonball", 18897660427541G },</code>
+                                    </div>
+                                </div>
+                                <div class="upload-check">
+                                    <span class="check-icon">☑</span> Auto-Upload to Roblox Open Cloud
+                                </div>
+                                <div class="upload-note">
+                                    <span class="info-icon">ⓘ</span> Supports LUA table format and raw asset IDs.
+                                </div>
+                                <button class="btn-start-bypass">
+                                    <span class="bypass-icon">⚡</span> Start Bypass
+                                </button>
+                            </div>
+
+                            <!-- Execution Logs -->
+                            <div class="dash-panel">
+                                <div class="panel-title">Execution Logs <span class="log-count">38</span> <span class="search-logs">🔍 Find in logs...</span></div>
+                                <div class="logs-container">
+                                    <div class="log-entry">
+                                        <span class="log-ts">14:42:56.967</span>
+                                        <span class="log-badge success">SUCCESS</span>
+                                        <span class="log-message">"Sonic the Hedgehog" → Downloaded 6.76 KB (Sonic_The_Hedgehog.rbxm)</span>
+                                    </div>
+                                    <div class="log-entry">
+                                        <span class="log-ts">14:42:56.968</span>
+                                        <span class="log-badge success">SUCCESS</span>
+                                        <span class="log-message">"Sonic Pose" → Downloaded 4.92 KB (Sonic_Pose.rbxm)</span>
+                                    </div>
+                                    <div class="log-entry">
+                                        <span class="log-ts">14:42:56.968</span>
+                                        <span class="log-badge success">SUCCESS</span>
+                                        <span class="log-message">"Jojo Pose" → Downloaded 7.83 KB (Jojo_Pose.rbxm)</span>
+                                    </div>
+                                    <div class="log-entry">
+                                        <span class="log-ts">14:42:56.968</span>
+                                        <span class="log-badge success">SUCCESS</span>
+                                        <span class="log-message">"Denbow Suave" → Downloaded 262.1 KB (Denbow_Suave.rbxm)</span>
+                                    </div>
+                                    <div class="log-entry">
+                                        <span class="log-ts">14:42:56.968</span>
+                                        <span class="log-badge success">SUCCESS</span>
+                                        <span class="log-message">"Denbow - De Lado" → Downloaded 287.83 KB (Denbow_De_Lado.rbxm)</span>
+                                    </div>
+                                    <div class="log-entry">
+                                        <span class="log-ts">14:42:56.968</span>
+                                        <span class="log-badge success">SUCCESS</span>
+                                        <span class="log-message">"Gangstar dance" → Downloaded 42.01 KB (Gangstar_dance.rbxm)</span>
+                                    </div>
+                                    <div class="log-entry">
+                                        <span class="log-ts">14:42:56.968</span>
+                                        <span class="log-badge success">SUCCESS</span>
+                                        <span class="log-message">"Clean Kicks" → Downloaded 56.81 KB (Clean_Kicks.rbxm)</span>
+                                    </div>
+                                    <div class="log-entry">
+                                        <span class="log-ts">14:42:56.968</span>
+                                        <span class="log-badge success">SUCCESS</span>
+                                        <span class="log-message">"Cannonball" → Downloaded 288.78 KB (Cannonball.rbxm)</span>
+                                    </div>
+                                    <div class="log-entry">
+                                        <span class="log-ts">14:42:56.968</span>
+                                        <span class="log-badge success">SUCCESS</span>
+                                        <span class="log-message">"Floating AURA" → Downloaded 68.91 KB (Floating_AURA.rbxm)</span>
+                                    </div>
+                                    <div class="log-entry">
+                                        <span class="log-ts">14:42:56.968</span>
+                                        <span class="log-badge success">SUCCESS</span>
+                                        <span class="log-message">"Sonic Adventure" → Downloaded 87.6 KB (Sonic_Adventure.rbxm)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Grid -->
+                        <div class="dash-grid">
+                            <!-- Spoofing Status -->
+                            <div class="dash-panel panel-sm">
+                                <div class="panel-title">Spoofing Status</div>
+                                <div class="status-grid">
+                                    <div class="status-row">
+                                        <span class="status-label"><span class="status-icon green">●</span> Status</span>
+                                        <span class="status-val completed">Spoofing Completed</span>
+                                    </div>
+                                    <div class="status-row">
+                                        <span class="status-label"><span class="status-icon blue">●</span> Time Elapsed</span>
+                                        <span class="status-val">00:02:47</span>
+                                    </div>
+                                    <div class="status-row">
+                                        <span class="status-label"><span class="status-icon yellow">●</span> Progress</span>
+                                        <span class="status-val">100%</span>
+                                    </div>
+                                    <div class="progress-bar-wrap">
+                                        <div class="progress-bar" style="width:100%"></div>
+                                    </div>
+                                    <div class="status-row">
+                                        <span class="status-label"><span class="status-icon purple">●</span> Spoofed Items</span>
+                                        <span class="status-val">9/9</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Deployment Summary -->
+                            <div class="dash-panel panel-sm">
+                                <div class="panel-title">Deployment Summary
+                                    <div class="deploy-actions">
+                                        <button class="btn-upload-sm">⬆ Upload</button>
+                                        <button class="btn-zip-sm">📦 ZIP (10)</button>
+                                    </div>
+                                </div>
+                                <div class="deploy-grid">
+                                    <div class="deploy-item">
+                                        <span class="deploy-label">Total Attempts</span>
+                                        <span class="deploy-val">273</span>
+                                    </div>
+                                    <div class="deploy-item">
+                                        <span class="deploy-label">Success Rate</span>
+                                        <span class="deploy-val">27%</span>
+                                    </div>
+                                    <div class="deploy-item">
+                                        <span class="deploy-label">Successful Attempts</span>
+                                        <span class="deploy-val deploy-success">271</span>
+                                    </div>
+                                    <div class="deploy-item">
+                                        <span class="deploy-label">Successful Attempts</span>
+                                        <span class="deploy-val">99.3%</span>
+                                    </div>
+                                    <div class="deploy-item">
+                                        <span class="deploy-label">Failed Attempts</span>
+                                        <span class="deploy-val deploy-fail">0</span>
+                                    </div>
+                                    <div class="deploy-item">
+                                        <span class="deploy-label">Last Spoofed</span>
+                                        <span class="deploy-val">2 sec ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bypass Features Section -->
+    <section class="bypass-section" id="bypass">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Bypass</span>
+                <h2 class="section-title">Bypass <span class="text-accent">Capabilities</span></h2>
+                <p class="section-desc">Advanced bypass engine that works across multiple services and platforms.</p>
+            </div>
+            <div class="bypass-grid">
+                <div class="bypass-card">
+                    <div class="bypass-header">
+                        <div class="bypass-icon-wrap">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2L22 7V17L12 22L2 17V7L12 2Z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8V16M8 12H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        </div>
+                        <span class="bypass-status active">Active</span>
+                    </div>
+                    <h3 class="bypass-title">Asset ID Bypass</h3>
+                    <p class="bypass-desc">Bypass asset restrictions by remapping IDs to new references. Works with UGC, animations, meshes, and audio assets.</p>
+                    <ul class="bypass-list">
+                        <li>UGC Items</li>
+                        <li>Animations & Emotes</li>
+                        <li>Meshes & Models</li>
+                        <li>Audio Assets</li>
+                    </ul>
+                </div>
+                <div class="bypass-card">
+                    <div class="bypass-header">
+                        <div class="bypass-icon-wrap">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                        <span class="bypass-status active">Active</span>
+                    </div>
+                    <h3 class="bypass-title">HWID Spoof</h3>
+                    <p class="bypass-desc">Hardware ID spoofing to bypass device bans. Generates unique identifiers per session to evade detection.</p>
+                    <ul class="bypass-list">
+                        <li>Device Fingerprint</li>
+                        <li>MAC Address</li>
+                        <li>Disk Serial</li>
+                        <li>BIOS UUID</li>
+                    </ul>
+                </div>
+                <div class="bypass-card">
+                    <div class="bypass-header">
+                        <div class="bypass-icon-wrap">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 7V12L15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        </div>
+                        <span class="bypass-status active">Active</span>
+                    </div>
+                    <h3 class="bypass-title">Rate Limit Bypass</h3>
+                    <p class="bypass-desc">Smart request throttling with automatic rate limit detection and distributed queue processing.</p>
+                    <ul class="bypass-list">
+                        <li>Auto Throttle</li>
+                        <li>Queue Management</li>
+                        <li>Retry Logic</li>
+                        <li>Cooldown Handler</li>
+                    </ul>
+                </div>
+                <div class="bypass-card">
+                    <div class="bypass-header">
+                        <div class="bypass-icon-wrap">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" stroke="currentColor" stroke-width="1.5"/><path d="M2 12H22M12 2C14.5 4.5 15.5 8.5 15.5 12C15.5 15.5 14.5 19.5 12 22C9.5 19.5 8.5 15.5 8.5 12C8.5 8.5 9.5 4.5 12 2Z" stroke="currentColor" stroke-width="1.5"/></svg>
+                        </div>
+                        <span class="bypass-status active">Active</span>
+                    </div>
+                    <h3 class="bypass-title">Open Cloud API</h3>
+                    <p class="bypass-desc">Direct integration with Roblox Open Cloud for automated asset deployment. Supports bulk uploads and version management.</p>
+                    <ul class="bypass-list">
+                        <li>Bulk Upload</li>
+                        <li>Version Control</li>
+                        <li>Auto Deploy</li>
+                        <li>Webhook Notify</li>
+                    </ul>
+                </div>
+                <div class="bypass-card">
+                    <div class="bypass-header">
+                        <div class="bypass-icon-wrap">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="currentColor" stroke-width="1.5"/><path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                        <span class="bypass-status active">Active</span>
+                    </div>
+                    <h3 class="bypass-title">Anti-Detection</h3>
+                    <p class="bypass-desc">Multi-layer evasion with encrypted payloads, randomized timing, and session fingerprint rotation.</p>
+                    <ul class="bypass-list">
+                        <li>Encrypted Payloads</li>
+                        <li>Timing Randomization</li>
+                        <li>Session Rotation</li>
+                        <li>Proxy Support</li>
+                    </ul>
+                </div>
+                <div class="bypass-card">
+                    <div class="bypass-header">
+                        <div class="bypass-icon-wrap">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 4H10V10H4V4Z" stroke="currentColor" stroke-width="1.5"/><path d="M14 4H20V10H14V4Z" stroke="currentColor" stroke-width="1.5"/><path d="M4 14H10V20H4V14Z" stroke="currentColor" stroke-width="1.5"/><path d="M14 14H20V20H14V14Z" stroke="currentColor" stroke-width="1.5"/></svg>
+                        </div>
+                        <span class="bypass-status active">Active</span>
+                    </div>
+                    <h3 class="bypass-title">Multi-Account</h3>
+                    <p class="bypass-desc">Manage and spoof across multiple Roblox accounts simultaneously with shared asset pools and unified logs.</p>
+                    <ul class="bypass-list">
+                        <li>Account Switching</li>
+                        <li>Shared Asset Pool</li>
+                        <li>Unified Logs</li>
+                        <li>Batch Operations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section" id="pricing">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Pricing</span>
+                <h2 class="section-title">Choose Your <span class="text-accent">Plan</span></h2>
+                <p class="section-desc">Flexible plans for every level. All plans include bypass features and auto-updates.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-tier">Starter</div>
+                    <div class="pricing-price">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount">9.99</span>
+                        <span class="price-period">/month</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><span class="check">✓</span> 50 Spoofs/day</li>
+                        <li><span class="check">✓</span> Basic Bypass Engine</li>
+                        <li><span class="check">✓</span> Single Account</li>
+                        <li><span class="check">✓</span> Execution Logs</li>
+                        <li><span class="check">✓</span> Email Support</li>
+                        <li class="disabled"><span class="cross">✕</span> HWID Spoof</li>
+                        <li class="disabled"><span class="cross">✕</span> Open Cloud API</li>
+                        <li class="disabled"><span class="cross">✕</span> Priority Support</li>
+                    </ul>
+                    <button class="btn btn-outline btn-pricing">Get Starter</button>
+                </div>
+                <div class="pricing-card pricing-featured">
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-tier">Pro</div>
+                    <div class="pricing-price">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount">24.99</span>
+                        <span class="price-period">/month</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><span class="check">✓</span> Unlimited Spoofs</li>
+                        <li><span class="check">✓</span> Advanced Bypass Engine</li>
+                        <li><span class="check">✓</span> 3 Accounts</li>
+                        <li><span class="check">✓</span> Real-Time Logs</li>
+                        <li><span class="check">✓</span> HWID Spoof</li>
+                        <li><span class="check">✓</span> Open Cloud API</li>
+                        <li><span class="check">✓</span> Auto Upload</li>
+                        <li class="disabled"><span class="cross">✕</span> Priority Support</li>
+                    </ul>
+                    <button class="btn btn-primary btn-pricing">Get Pro</button>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-tier">Enterprise</div>
+                    <div class="pricing-price">
+                        <span class="price-currency">$</span>
+                        <span class="price-amount">49.99</span>
+                        <span class="price-period">/month</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><span class="check">✓</span> Unlimited Spoofs</li>
+                        <li><span class="check">✓</span> Full Bypass Suite</li>
+                        <li><span class="check">✓</span> Unlimited Accounts</li>
+                        <li><span class="check">✓</span> Advanced Analytics</li>
+                        <li><span class="check">✓</span> HWID Spoof</li>
+                        <li><span class="check">✓</span> Open Cloud API</li>
+                        <li><span class="check">✓</span> Auto Upload + ZIP</li>
+                        <li><span class="check">✓</span> 24/7 Priority Support</li>
+                    </ul>
+                    <button class="btn btn-outline btn-pricing">Get Enterprise</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section" id="faq">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">FAQ</span>
+                <h2 class="section-title">Frequently Asked <span class="text-accent">Questions</span></h2>
+            </div>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>What is BMK Spoofer?</span>
+                        <span class="faq-toggle">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>BMK Spoofer is an advanced asset spoofing tool that allows you to bypass restrictions and refake banned or disabled assets across multiple services. It supports bulk operations, auto-upload to Roblox Open Cloud, and provides real-time execution logs.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>How does the bypass feature work?</span>
+                        <span class="faq-toggle">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>The bypass engine remaps asset IDs, generates new references, and uses advanced techniques to circumvent platform restrictions. It works with UGC items, animations, meshes, audio assets, and more. The multi-layer evasion system ensures a 99.3% success rate.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Is it safe to use?</span>
+                        <span class="faq-toggle">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>BMK Spoofer uses encrypted payloads, randomized timing, and session fingerprint rotation to minimize detection. The anti-detection module is continuously updated to stay ahead of platform security measures.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>What formats are supported for asset input?</span>
+                        <span class="faq-toggle">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>You can input assets using LUA table format or raw asset IDs. The tool parses both formats and queues them for bulk processing. Example: <code>{ "Asset Name", 12345678901234 }</code></p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Can I use multiple accounts?</span>
+                        <span class="faq-toggle">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes. The Pro plan supports up to 3 accounts, and Enterprise supports unlimited accounts. You can switch between accounts, share asset pools, and view unified logs across all connected accounts.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>How do I get support?</span>
+                        <span class="faq-toggle">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Starter plans include email support. Pro plans get priority Discord support. Enterprise plans get 24/7 dedicated support with a response time guarantee of under 1 hour.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+                            <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="url(#footGrad)" stroke-width="2" fill="none"/>
+                            <path d="M14 8L20 11V17L14 20L8 17V11L14 8Z" fill="url(#footGrad)"/>
+                            <defs><linearGradient id="footGrad" x1="2" y1="2" x2="26" y2="26"><stop stop-color="#39FF14"/><stop offset="1" stop-color="#00E5FF"/></linearGradient></defs>
+                        </svg>
+                        <span>BMK<span class="text-accent">Spoofer</span></span>
+                    </div>
+                    <p class="footer-tagline">Bypass and Refake any banned or disabled devices in any services.</p>
+                </div>
+                <div class="footer-links-group">
+                    <h4>Product</h4>
+                    <a href="#features">Features</a>
+                    <a href="#dashboard">Dashboard</a>
+                    <a href="#bypass">Bypass</a>
+                    <a href="#pricing">Pricing</a>
+                </div>
+                <div class="footer-links-group">
+                    <h4>Support</h4>
+                    <a href="#">Discord</a>
+                    <a href="#">Documentation</a>
+                    <a href="#faq">FAQ</a>
+                    <a href="#">Contact</a>
+                </div>
+                <div class="footer-links-group">
+                    <h4>Legal</h4>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Refund Policy</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 BMK Spoofer. All rights reserved.</p>
+                <div class="footer-socials">
+                    <a href="#" class="social-link" aria-label="Discord">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286z"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Twitter">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="YouTube">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
