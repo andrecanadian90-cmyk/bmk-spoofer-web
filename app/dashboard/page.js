@@ -172,8 +172,24 @@ export default function DashboardPage() {
               <div key={log._id || i} className="log-entry">
                 <span className="log-ts">{new Date(log.createdAt).toLocaleTimeString()}</span>
                 <span className={`log-badge-s ${log.status}`}>{log.status.toUpperCase()}</span>
-                <span className="log-msg">
-                  &quot;{log.assetName}&quot; → {log.status === 'success' ? `Downloaded ${formatSize(log.fileSize)}` : log.error || 'Failed'}
+                <span className="log-msg" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'calc(100% - 160px)' }}>
+                  &quot;{log.assetName}&quot; → {log.status === 'success' ? (
+                    <>
+                      {log.newAssetId ? (
+                        <a 
+                          href={log.newAssetId.startsWith('pending') ? '#' : `https://create.roblox.com/dashboard/creations/assets/${log.newAssetId}`} 
+                          target={log.newAssetId.startsWith('pending') ? '_self' : '_blank'} 
+                          rel="noreferrer" 
+                          style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 600 }}
+                          onClick={e => log.newAssetId.startsWith('pending') && e.preventDefault()}
+                        >
+                          {log.newAssetId.startsWith('pending') ? 'Processing' : `ID: ${log.newAssetId}`}
+                        </a>
+                      ) : 'Uploaded'} ({formatSize(log.fileSize)})
+                    </>
+                  ) : (
+                    <span style={{ color: 'var(--fail)' }} title={log.error}>{log.error || 'Failed'}</span>
+                  )}
                 </span>
               </div>
             ))}
@@ -187,20 +203,20 @@ export default function DashboardPage() {
         <div className="card">
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 16 }}>Spoofing Status</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifycontent: 'space-between' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>● Status</span>
               <span style={{ fontSize: '0.8rem', fontWeight: 600, color: status === 'Spoofing Completed' ? 'var(--accent)' : 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>{status}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifycontent: 'space-between' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>● Time Elapsed</span>
               <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>{formatTime(elapsed)}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifycontent: 'space-between' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>● Progress</span>
               <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>{progress}%</span>
             </div>
             <div className="progress-wrap"><div className="progress-fill" style={{ width: `${progress}%` }}></div></div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', justifycontent: 'space-between' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>● Spoofed Items</span>
               <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>{stats.successful}/{stats.total || 0}</span>
             </div>
