@@ -82,8 +82,10 @@ export async function POST(request) {
           assetInfo.assetType,
           assetInfo.name || asset.name,
           `Spoofed from ${asset.id}`,
-          downloaded.buffer
+          downloaded.buffer,
+          user.robloxCookie  // pass cookie for Animation legacy upload
         );
+
 
         // Step 4: Check if upload needs async resolution
         let finalAssetId = uploaded.assetId;
