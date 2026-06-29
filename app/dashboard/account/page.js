@@ -8,6 +8,7 @@ export default function AccountPage() {
   const { showToast } = useToast();
   const [robloxId, setRobloxId] = useState(user?.robloxId || '');
   const [apiKey, setApiKey] = useState('');
+  const [robloxCookie, setRobloxCookie] = useState('');
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [linking, setLinking] = useState(false);
@@ -30,17 +31,19 @@ export default function AccountPage() {
   };
 
   const linkAccount = async () => {
-    if (!robloxId || !apiKey) { showToast('Fill in all fields', 'error'); return; }
+    if (!robloxId || !apiKey) { showToast('Roblox ID and API Key are required', 'error'); return; }
     setLinking(true);
     try {
       const res = await fetch('/api/roblox/link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ robloxId, apiKey }),
+        body: JSON.stringify({ robloxId, apiKey, robloxCookie }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      showToast('Roblox account linked', 'success');
+      showToast('Roblox credentials linked successfully', 'success');
+      setApiKey('');
+      setRobloxCookie('');
       refreshUser();
     } catch (err) {
       showToast(err.message, 'error');
@@ -63,13 +66,21 @@ export default function AccountPage() {
               <div style={{ fontWeight: 700 }}>{user.robloxUsername}</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: {user.robloxId}</div>
             </div>
-            <span className="badge badge-success" style={{ marginLeft: 'auto' }}>Linked</span>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+              {user.robloxCookie ? (
+                <span className="badge badge-info" style={{ fontSize: '0.6rem' }}>Cookie Linked</span>
+              ) : (
+                <span className="badge badge-warning" style={{ fontSize: '0.6rem' }}>No Cookie (Public Only)</span>
+              )}
+              <span className="badge badge-success">Active</span>
+            </div>
           </div>
         </div>
       )}
 
       <div className="card" style={{ marginBottom: 20 }}>
-        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 16 }}>{user?.robloxId ? 'Update Account' : 'Link Account'}</h3>
+        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 16 }}>{user?.robloxId ? 'Update Credentials' : 'Link Credentials'}</h3>
+        
         <div className="form-group">
           <label className="form-label">Roblox User ID</label>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -89,14 +100,22 @@ export default function AccountPage() {
 
         <div className="form-group">
           <label className="form-label">Open Cloud API Key</label>
-          <input type="password" className="input input-mono" placeholder="your-api-key-here" value={apiKey} onChange={e => setApiKey(e.target.value)} />
+          <input type="password" className="input input-mono" placeholder={user?.robloxId ? "••••••••••••••••" : "your-api-key-here"} value={apiKey} onChange={e => setApiKey(e.target.value)} />
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 4 }}>
-            Get your API key from <a href="https://create.roblox.com/credentials" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>create.roblox.com/credentials</a>
+            Get key from <a href="https://create.roblox.com/credentials" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>create.roblox.com/credentials</a> (Permissions: Assets write/read).
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Roblox Session Cookie (.ROBLOSECURITY) <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Optional - untuk bypass private asset)</span></label>
+          <input type="password" className="input input-mono" placeholder={user?.robloxCookie ? "••••••••••••••••" : "_|WARNING:-DO-NOT-SHARE-THIS.-Sharing-this-will-allow-someone-to-log-in..."} value={robloxCookie} onChange={e => setRobloxCookie(e.target.value)} />
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 4 }}>
+            Copy value dari cookie bernama <code>.ROBLOSECURITY</code> pada browser yang sedang login akun Roblox lo.
           </div>
         </div>
 
         <button className="btn btn-primary" onClick={linkAccount} disabled={linking} style={{ width: '100%' }}>
-          {linking ? <span className="spinner"></span> : user?.robloxId ? 'Update Account' : 'Link Account'}
+          {linking ? <span className="spinner"></span> : user?.robloxId ? 'Update Credentials' : 'Link Credentials'}
         </button>
       </div>
     </div>

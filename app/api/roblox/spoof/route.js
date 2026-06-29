@@ -61,18 +61,18 @@ export async function POST(request) {
       });
 
       try {
-        // Step 1: Get asset info (type, real name)
+        // Step 1: Get asset info (type, real name) using the stored Roblox Cookie
         let assetInfo;
         try {
-          assetInfo = await getAssetInfo(asset.id);
+          assetInfo = await getAssetInfo(asset.id, user.robloxCookie);
           log.assetName = assetInfo.name || asset.name;
         } catch {
           // If we can't get info, proceed with defaults
           assetInfo = { assetType: 'Model', isAnimation: false, name: asset.name };
         }
 
-        // Step 2: Download asset
-        const downloaded = await downloadAsset(asset.id);
+        // Step 2: Download asset using the stored Roblox Cookie
+        const downloaded = await downloadAsset(asset.id, user.robloxCookie);
         log.fileSize = downloaded.size;
 
         // Step 3: Upload to user's account

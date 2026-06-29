@@ -9,7 +9,7 @@ export async function POST(request) {
     const decoded = requireAuth(request);
     await connectDB();
 
-    const { robloxId, apiKey } = await request.json();
+    const { robloxId, apiKey, robloxCookie } = await request.json();
     if (!robloxId || !apiKey) {
       return NextResponse.json({ success: false, error: 'Roblox ID and API Key are required' }, { status: 400 });
     }
@@ -18,7 +18,12 @@ export async function POST(request) {
 
     const user = await User.findByIdAndUpdate(
       decoded.userId,
-      { robloxId, robloxUsername: robloxUser.name, robloxApiKey: apiKey },
+      { 
+        robloxId, 
+        robloxUsername: robloxUser.name, 
+        robloxApiKey: apiKey,
+        robloxCookie: robloxCookie || null // Save cookie (optional)
+      },
       { new: true }
     ).select('-password');
 
@@ -28,6 +33,7 @@ export async function POST(request) {
         robloxId: user.robloxId,
         robloxUsername: user.robloxUsername,
         robloxDisplayName: robloxUser.displayName,
+        hasCookie: !!user.robloxCookie
       },
     });
   } catch (err) {
