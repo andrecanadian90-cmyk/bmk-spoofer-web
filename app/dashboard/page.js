@@ -179,7 +179,7 @@ export default function DashboardPage() {
                         <button
                           onClick={async () => {
                             try {
-                              const res = await fetch(`/api/roblox/download?assetId=${log.originalId}`, {
+                              const res = await fetch(`/api/roblox/download?assetId=${log.originalAssetId}`, {
                                 headers: { Authorization: `Bearer ${token}` },
                               });
                               if (!res.ok) throw new Error('Download failed');
@@ -187,7 +187,7 @@ export default function DashboardPage() {
                               const url = URL.createObjectURL(blob);
                               const a = document.createElement('a');
                               a.href = url;
-                              a.download = `animation_${log.originalId}.rbxm`;
+                              a.download = `animation_${log.originalAssetId}.rbxm`;
                               a.click();
                               URL.revokeObjectURL(url);
                               showToast('File downloaded successfully', 'success');
