@@ -175,7 +175,37 @@ export default function DashboardPage() {
                 <span className="log-msg" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'calc(100% - 160px)' }}>
                   &quot;{log.assetName}&quot; → {log.status === 'success' ? (
                     <>
-                      {log.newAssetId ? (
+                      {log.buffer ? (
+                        <button
+                          onClick={() => {
+                            const byteCharacters = atob(log.buffer);
+                            const byteNumbers = new Array(byteCharacters.length);
+                            for (let i = 0; i < byteCharacters.length; i++) {
+                              byteNumbers[i] = byteCharacters.charCodeAt(i);
+                            }
+                            const byteArray = new Uint8Array(byteNumbers);
+                            const blob = new Blob([byteArray], { type: 'application/octet-stream' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `animation_${log.originalAssetId}.rbxm`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--accent)',
+                            cursor: 'pointer',
+                            textDecoration: 'underline',
+                            fontWeight: 600,
+                            padding: 0,
+                            font: 'inherit',
+                          }}
+                        >
+                          ⬇ Download
+                        </button>
+                      ) : log.newAssetId ? (
                         <a 
                           href={log.newAssetId.startsWith('pending') ? '#' : `https://create.roblox.com/dashboard/creations/assets/${log.newAssetId}`} 
                           target={log.newAssetId.startsWith('pending') ? '_self' : '_blank'} 
