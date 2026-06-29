@@ -36,9 +36,14 @@ export async function POST(request) {
       data: {
         token,
         user: {
-          id: user._id, email: user.email, username: user.username,
-          role: user.role, coins: user.coins,
-          robloxId: user.robloxId, robloxUsername: user.robloxUsername,
+          id: user._id, 
+          email: user.email, 
+          username: user.username,
+          role: user.role, 
+          coins: user.coins,
+          robloxId: user.robloxId, 
+          robloxUsername: user.robloxUsername,
+          robloxCookie: user.robloxCookie ? 'linked' : null, // Masked representation for safety
         },
       },
     });

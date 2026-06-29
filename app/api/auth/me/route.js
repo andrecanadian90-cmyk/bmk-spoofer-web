@@ -16,10 +16,17 @@ export async function GET(request) {
     return NextResponse.json({
       success: true,
       data: {
-        id: user._id, email: user.email, username: user.username,
-        role: user.role, coins: user.coins, banned: user.banned,
-        robloxId: user.robloxId, robloxUsername: user.robloxUsername,
-        createdAt: user.createdAt, lastLogin: user.lastLogin,
+        id: user._id, 
+        email: user.email, 
+        username: user.username,
+        role: user.role, 
+        coins: user.coins, 
+        banned: user.banned,
+        robloxId: user.robloxId, 
+        robloxUsername: user.robloxUsername,
+        robloxCookie: user.robloxCookie ? 'linked' : null, // Masked representation for safety
+        createdAt: user.createdAt, 
+        lastLogin: user.lastLogin,
       },
     });
   } catch (err) {
