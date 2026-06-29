@@ -31,16 +31,24 @@ export default function AccountPage() {
   };
 
   const linkAccount = async () => {
-    if (!robloxId || !apiKey) { showToast('Roblox ID and API Key are required', 'error'); return; }
+    if (!robloxId) { showToast('Roblox ID is required', 'error'); return; }
+    
+    // API key only required if user doesn't have one saved yet
+    if (!user?.robloxId && !apiKey) {
+      showToast('Open Cloud API Key is required', 'error');
+      return;
+    }
+
     setLinking(true);
     try {
       const res = await fetch('/api/roblox/link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ robloxId, apiKey, robloxCookie }),
+        body: JSON.stringify({ robloxId, apiKey: apiKey || undefined, robloxCookie: robloxCookie || undefined }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
+      
       showToast('Roblox credentials linked successfully', 'success');
       setApiKey('');
       setRobloxCookie('');
@@ -99,7 +107,7 @@ export default function AccountPage() {
         )}
 
         <div className="form-group">
-          <label className="form-label">Open Cloud API Key</label>
+          <label className="form-label">Open Cloud API Key <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>{user?.robloxId && "(Kosongkan jika tidak ingin diubah)"}</span></label>
           <input type="password" className="input input-mono" placeholder={user?.robloxId ? "••••••••••••••••" : "your-api-key-here"} value={apiKey} onChange={e => setApiKey(e.target.value)} />
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 4 }}>
             Get key from <a href="https://create.roblox.com/credentials" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>create.roblox.com/credentials</a> (Permissions: Assets write/read).
@@ -107,7 +115,7 @@ export default function AccountPage() {
         </div>
 
         <div className="form-group">
-          <label className="form-label">Roblox Session Cookie (.ROBLOSECURITY) <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Optional - untuk bypass private asset)</span></label>
+          <label className="form-label">Roblox Session Cookie (.ROBLOSECURITY) <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>{user?.robloxCookie ? "(Kosongkan jika tidak ingin diubah)" : "(Optional - untuk bypass private asset)"}</span></label>
           <input type="password" className="input input-mono" placeholder={user?.robloxCookie ? "••••••••••••••••" : "_|WARNING:-DO-NOT-SHARE-THIS.-Sharing-this-will-allow-someone-to-log-in..."} value={robloxCookie} onChange={e => setRobloxCookie(e.target.value)} />
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 4 }}>
             Copy value dari cookie bernama <code>.ROBLOSECURITY</code> pada browser yang sedang login akun Roblox lo.
