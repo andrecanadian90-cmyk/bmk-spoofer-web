@@ -6,7 +6,7 @@ import Transaction from '@/lib/models/Transaction';
 import { requireAuth } from '@/lib/auth';
 import { parseAssetInput, getAssetInfo, downloadAsset, uploadAsset, checkOperation } from '@/lib/roblox';
 
-export const maxDuration = 60; // Vercel Pro: 60s timeout
+export const maxDuration = 300; // Vercel Pro: 300s max for long operations
 
 export async function POST(request) {
   try {
@@ -88,16 +88,22 @@ export async function POST(request) {
         // Step 4: Check if upload needs async resolution
         let finalAssetId = uploaded.assetId;
         if (!finalAssetId && uploaded.operationId) {
-          // Wait a bit then check operation
-          await new Promise(r => setTimeout(r, 2000));
-          const opResult = await checkOperation(user.robloxApiKey, uploaded.operationId);
-          if (opResult) {
-            finalAssetId = opResult.assetId;
-            if (opResult.error) throw new Error(opResult.error);
-          } else {
+          // Poll operation status — Roblox can take 5-15s to process
+          for (let attempt = 0; attempt < 8; attempt++) {
+            await new Promise(r => setTimeout(r, 2500));
+            const opResult = await checkOperation(user.robloxApiKey, uploaded.operationId);
+            if (opResult?.error) throw new Error(opResult.error);
+            if (opResult?.assetId) {
+              finalAssetId = opResult.assetId;
+              break;
+            }
+          }
+          // Still no ID after 20s of polling
+          if (!finalAssetId) {
             finalAssetId = `pending:${uploaded.operationId}`;
           }
         }
+
 
         // Success
         log.status = 'success';
