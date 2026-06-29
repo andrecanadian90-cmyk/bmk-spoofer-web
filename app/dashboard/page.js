@@ -175,22 +175,25 @@ export default function DashboardPage() {
                 <span className="log-msg" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'calc(100% - 160px)' }}>
                   &quot;{log.assetName}&quot; → {log.status === 'success' ? (
                     <>
-                      {log.buffer ? (
+                      {log.status === 'success' ? (
                         <button
-                          onClick={() => {
-                            const byteCharacters = atob(log.buffer);
-                            const byteNumbers = new Array(byteCharacters.length);
-                            for (let i = 0; i < byteCharacters.length; i++) {
-                              byteNumbers[i] = byteCharacters.charCodeAt(i);
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/api/roblox/download?assetId=${log.originalId}`, {
+                                headers: { Authorization: `Bearer ${token}` },
+                              });
+                              if (!res.ok) throw new Error('Download failed');
+                              const blob = await res.blob();
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `animation_${log.originalId}.rbxm`;
+                              a.click();
+                              URL.revokeObjectURL(url);
+                              showToast('File downloaded successfully', 'success');
+                            } catch (e) {
+                              showToast('Download error: ' + e.message, 'error');
                             }
-                            const byteArray = new Uint8Array(byteNumbers);
-                            const blob = new Blob([byteArray], { type: 'application/octet-stream' });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `animation_${log.originalAssetId}.rbxm`;
-                            a.click();
-                            URL.revokeObjectURL(url);
                           }}
                           style={{
                             background: 'none',
@@ -205,17 +208,7 @@ export default function DashboardPage() {
                         >
                           ⬇ Download
                         </button>
-                      ) : log.newAssetId ? (
-                        <a 
-                          href={log.newAssetId.startsWith('pending') ? '#' : `https://create.roblox.com/dashboard/creations/assets/${log.newAssetId}`} 
-                          target={log.newAssetId.startsWith('pending') ? '_self' : '_blank'} 
-                          rel="noreferrer" 
-                          style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 600 }}
-                          onClick={e => log.newAssetId.startsWith('pending') && e.preventDefault()}
-                        >
-                          {log.newAssetId.startsWith('pending') ? 'Processing' : `ID: ${log.newAssetId}`}
-                        </a>
-                      ) : 'Uploaded'} ({formatSize(log.fileSize)})
+                      ) : 'N/A'} ({formatSize(log.fileSize)})
                     </>
                   ) : (
                     <span style={{ color: 'var(--fail)' }} title={log.error}>{log.error || 'Failed'}</span>

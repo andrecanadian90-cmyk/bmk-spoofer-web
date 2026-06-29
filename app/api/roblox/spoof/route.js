@@ -65,7 +65,6 @@ export async function POST(request) {
           fileSize: downloaded.size,
           status: 'success',
           fileName: `animation_${asset.id}.rbxm`,
-          buffer: downloaded.buffer.toString('base64'),
           duration: log.duration,
         });
 
