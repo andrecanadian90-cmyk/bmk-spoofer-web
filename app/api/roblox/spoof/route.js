@@ -92,10 +92,11 @@ export async function POST(request) {
         total: assets.length,
         successful: successCount,
         failed: failCount,
-        files: results,
+        logs: results,
         message: successCount > 0 ? 'Files ready for download. Import to Studio: Insert → Object → Select File.' : 'All downloads failed.',
       },
     });
+
   } catch (err) {
     const status = err.message === 'Unauthorized' ? 401 : 500;
     return NextResponse.json({ success: false, error: err.message }, { status });
