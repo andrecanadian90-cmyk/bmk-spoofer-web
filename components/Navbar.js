@@ -72,6 +72,16 @@ export default function Navbar() {
         </Link>
  
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {/* 3D Animated Free Coin Button */}
+          <a 
+            href="https://discord.gg/x26ky9drYr" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="btn-3d-gold"
+          >
+            🎁 <span>{language === 'id' ? 'Koin Gratis' : 'Free Coin'}</span>
+          </a>
+
           {/* Language Toggle Button */}
           <button 
             onClick={() => setLanguage(language === 'id' ? 'en' : 'id')}
@@ -240,6 +250,60 @@ export default function Navbar() {
         @keyframes marquee {
           0% { transform: translate3d(0, 0, 0); }
           100% { transform: translate3d(-100%, 0, 0); }
+        }
+        .btn-3d-gold {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 18px;
+          font-size: 0.78rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+          color: #ffffff !important;
+          background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+          border: none;
+          border-radius: 10px;
+          cursor: pointer;
+          text-decoration: none !important;
+          box-shadow: 0 4px 0 #b45309, 0 8px 16px rgba(217, 119, 6, 0.2);
+          transition: all 0.1s ease;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+          overflow: hidden;
+          animation: gold-pulse 2s infinite ease-in-out;
+        }
+        .btn-3d-gold:hover {
+          transform: translateY(1px);
+          box-shadow: 0 3px 0 #b45309, 0 6px 12px rgba(217, 119, 6, 0.25);
+          background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+        }
+        .btn-3d-gold:active {
+          transform: translateY(4px);
+          box-shadow: 0 0px 0 #b45309, 0 2px 4px rgba(217, 119, 6, 0.15);
+        }
+        /* Shine effect */
+        .btn-3d-gold::after {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -60%;
+          width: 30%;
+          height: 200%;
+          background: rgba(255, 255, 255, 0.4);
+          transform: rotate(30deg);
+          transition: none;
+          animation: shine 3s infinite ease-in-out;
+        }
+        @keyframes shine {
+          0% { left: -60%; }
+          15% { left: 130%; }
+          100% { left: 130%; }
+        }
+        @keyframes gold-pulse {
+          0% { box-shadow: 0 4px 0 #b45309, 0 8px 16px rgba(217, 119, 6, 0.3); }
+          50% { box-shadow: 0 4px 0 #b45309, 0 12px 24px rgba(217, 119, 6, 0.5), 0 0 0 6px rgba(251, 191, 36, 0.15); }
+          100% { box-shadow: 0 4px 0 #b45309, 0 8px 16px rgba(217, 119, 6, 0.3); }
         }
         .dropdown-item {
           transition: all 0.2s ease;
