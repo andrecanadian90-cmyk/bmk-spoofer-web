@@ -5,8 +5,8 @@ import { ToastProvider } from '@/components/Toast';
 import Navbar from '@/components/Navbar';
 
 export const metadata = {
-  title: 'BMK Spoofer — Bypass & Refake Any Banned or Disabled Devices',
-  description: 'BMK Spoofer — The most advanced spoofing tool to bypass and refake any banned or disabled devices in any services.',
+  title: 'BERNADA STORE — Roblox Asset Creator & Audio Developer Suite',
+  description: 'BERNADA STORE — The ultimate developer workspace. Process asset spoofing, convert audio formats, and master mixing consoles in one unified portal.',
 };
 
 export default function RootLayout({ children }) {
