@@ -66,21 +66,41 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: err.message }, { status: 400 });
     }
 
-    if (assets.length > 10) {
-      return NextResponse.json({
-        success: false,
-        error: `Max 10 assets per download. Got ${assets.length}.`,
-      }, { status: 400 });
-    }
-
-    // Check basic user usage limit (Max 10 lifetime spoofs)
+    // Rank detection (normalizing formatting & case from database)
+    const normalizedRole = (user.role || '').toLowerCase().replace(/[- ]/g, '_');
     const totalTopUp = user.totalTopUp || 0;
-    const isAdmin = user.role === 'admin';
-    const isTopSpender = user.role === 'top_spender';
+
+    const isAdmin = normalizedRole === 'admin';
+    const isTopSpender = normalizedRole === 'top_spender';
     const isExclusive = totalTopUp >= 500 && !isAdmin && !isTopSpender;
     const isPremium = totalTopUp >= 50 && totalTopUp < 500 && !isAdmin && !isTopSpender;
     const isBasic = !isAdmin && !isTopSpender && !isExclusive && !isPremium;
 
+    // Determine batch size limit based on rank
+    let maxBatchSize = 10;
+    let rankName = 'BASIC';
+    if (isAdmin) {
+      maxBatchSize = 100;
+      rankName = 'ADMIN';
+    } else if (isTopSpender) {
+      maxBatchSize = 100;
+      rankName = 'TOP SPENDER';
+    } else if (isExclusive) {
+      maxBatchSize = 50;
+      rankName = 'EXCLUSIVE';
+    } else if (isPremium) {
+      maxBatchSize = 25;
+      rankName = 'PREMIUM';
+    }
+
+    if (assets.length > maxBatchSize) {
+      return NextResponse.json({
+        success: false,
+        error: `Batas maksimal proses massal (bulk) untuk rank ${rankName} adalah ${maxBatchSize} aset per permintaan. (Jumlah input: ${assets.length} aset).`,
+      }, { status: 400 });
+    }
+
+    // Enforce weekly usage limit ONLY for BASIC rank
     if (isBasic) {
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
