@@ -24,7 +24,12 @@ export function AuthProvider({ children }) {
       const data = await res.json();
       if (data.success) {
         setUser(data.data);
-        setToken(t);
+        if (data.newToken) {
+          localStorage.setItem('bmk_token', data.newToken);
+          setToken(data.newToken);
+        } else {
+          setToken(t);
+        }
       } else {
         localStorage.removeItem('bmk_token');
         setToken(null);

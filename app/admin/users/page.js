@@ -11,6 +11,8 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
   const [coinAmount, setCoinAmount] = useState('');
+  const [rankModal, setRankModal] = useState(null);
+  const [selectedRank, setSelectedRank] = useState('50');
 
   useEffect(() => { fetchUsers(); }, []);
 
@@ -44,6 +46,27 @@ export default function AdminUsersPage() {
     }
   };
 
+  const updateRank = async () => {
+    if (!rankModal) return;
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userId: rankModal._id, action: 'set_total_topup', totalTopUp: Number(selectedRank) }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Successfully updated rank for ${rankModal.username}`, 'success');
+        setRankModal(null);
+        fetchUsers();
+      } else {
+        showToast(data.error, 'error');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
   const toggleBan = async (userId, action) => {
     try {
       const res = await fetch('/api/admin/users', {
@@ -54,6 +77,22 @@ export default function AdminUsersPage() {
       const data = await res.json();
       if (data.success) {
         showToast(`User ${action === 'ban' ? 'banned' : 'unbanned'}`, 'success');
+        fetchUsers();
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+  const toggleRole = async (userId, action) => {
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userId, action }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`User role updated successfully`, 'success');
         fetchUsers();
       }
     } catch (err) {
@@ -100,8 +139,12 @@ export default function AdminUsersPage() {
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button className="btn btn-outline btn-sm" onClick={() => { setModal(u); setCoinAmount(''); }}>+ Coins</button>
+                      <button className="btn btn-outline btn-sm" onClick={() => { setRankModal(u); setSelectedRank(String(u.totalTopUp || 0)); }}>Set Rank</button>
                       <button className={`btn btn-sm ${u.banned ? 'btn-outline' : 'btn-danger'}`} onClick={() => toggleBan(u._id, u.banned ? 'unban' : 'ban')}>
                         {u.banned ? 'Unban' : 'Ban'}
+                      </button>
+                      <button className={`btn btn-sm ${u.role === 'admin' ? 'btn-outline' : 'btn-primary'}`} onClick={() => toggleRole(u._id, u.role === 'admin' ? 'remove_admin' : 'make_admin')}>
+                        {u.role === 'admin' ? 'Revoke Admin' : 'Grant Admin'}
                       </button>
                     </div>
                   </td>
@@ -124,6 +167,35 @@ export default function AdminUsersPage() {
             <div className="modal-actions">
               <button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button>
               <button className="btn btn-primary" onClick={addCoins}>Add Coins</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rankModal && (
+        <div className="modal-overlay" onClick={() => setRankModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-title">Set Rank for {rankModal.username}</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 16 }}>
+              Current Total Top Up: <strong>{rankModal.totalTopUp || 0} Coins</strong>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Select Rank Target</label>
+              <select 
+                className="input" 
+                value={selectedRank} 
+                onChange={e => setSelectedRank(e.target.value)}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
+              >
+                <option value="0">BASIC (Total Top Up: 0 Coins)</option>
+                <option value="50">PREMIUM (Total Top Up: 50 Coins)</option>
+                <option value="500">EXCLUSIVE (Total Top Up: 500 Coins)</option>
+                <option value="1000">TOP SPENDER (Total Top Up: 1000 Coins)</option>
+              </select>
+            </div>
+            <div className="modal-actions" style={{ marginTop: 24 }}>
+              <button className="btn btn-outline" onClick={() => setRankModal(null)}>Cancel</button>
+              <button className="btn btn-primary" onClick={updateRank}>Update Rank</button>
             </div>
           </div>
         </div>

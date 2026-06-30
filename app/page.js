@@ -1,305 +1,1420 @@
 'use client';
-import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import Navbar from '@/components/Navbar';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+const translations = {
+  id: {
+    heroTitle: "Kuasai Kreativitas Roblox Tanpa Batas: Spoofer, Audio Bypass & DJ Mixer",
+    heroSub: "Gunakan Bernada Spoofer (UGC & Mesh) secara GRATIS, modifikasi pola frekuensi audio dengan presisi melalui Bernada Audio, dan rancang transisi setlist musik secara profesional dengan Bernada Mixing.",
+    tickNoVerification: "Tanpa Verifikasi ID",
+    tickSeconds: "Instalasi Cepat",
+    tickAutomated: "Otomatis & Aman",
+    tabStart: "Mulai Sekarang",
+    tabFeatures: "Lihat Fitur",
+    tabPricelist: "Daftar Harga",
+    
+    // Slide 0
+    s0Badge: "PELOPOR BYPASS ROBLOX",
+    s0Title: "Asset Spoofer Otomatis",
+    s0Desc: "Bypass verifikasi aset secara instan untuk aksesoris UGC, pakaian, animasi, dan video. Upload otomatis langsung ke katalog cloud Roblox dengan tingkat keberhasilan 99.6%.",
+    s0Check1: "Mendukung UGC, Mesh, Anim, Audio & Video",
+    s0Check2: "Auto-Upload Langsung ke Roblox",
+    
+    // Slide 1
+    s1Badge: "BYPASS AUDIO LANJUTAN",
+    s1Title: "Pemroses Suara Presisi",
+    s1Desc: "Modifikasi pola frekuensi, tingkat kecepatan, dan delay stereo untuk menghindari deteksi hak cipta Roblox. Pemotongan lagu panjang otomatis secara real-time.",
+    s1Check1: "Pemrosesan Multi-Speed (0.5x - 4.0x)",
+    s1Check2: "Slicing & Segmentasi Otomatis",
+
+    // Slide 2
+    s2Badge: "ALAT SOUND DEVELOPER",
+    s2Title: "Harmonic Transition Mixer",
+    s2Desc: "Buat soundtrack kustom, setlist lagu, dan beat drop. Terintegrasi penuh dengan render offline yang lebih cepat dari real-time.",
+    s2Check1: "Stereo Routing & Fader Web Audio API",
+    s2Check2: "Pitch Locked & Ramping BPM",
+    
+    // Features slide
+    fTitle: "Fitur & Manfaat Platform",
+    fSub: "Tingkatkan efisiensi pengembangan Roblox Anda dengan otomatisasi cloud yang terukur.",
+    fCard1Title: "Anti-Deteksi & Aman",
+    fCard1Desc: "Algoritma bypass mutakhir melindungi akun developer Anda selama proses upload.",
+    fCard2Title: "Bypass Verifikasi",
+    fCard2Desc: "Bypass limitasi verifikasi aset instan tanpa proses ID yang rumit.",
+    fCard3Title: "Otomatisasi Cloud 24/7",
+    fCard3Desc: "Bypass beroperasi penuh di server cloud kami. Jalankan kapan saja dan dapatkan hasil instan.",
+    
+    // Pricelist slide
+    pTitle: "Jelajahi Paket Bernada Tools",
+    pSub: "Pilih alat pengembangan yang sesuai dengan kebutuhan Anda. Kami menawarkan harga yang fleksibel.",
+    pSpooferDesc: "Bypass tak terbatas untuk kreator",
+    pAudioDesc: "Prosesor suara bypass tingkat lanjut",
+    pMixerDesc: "Pembuat setlist transisi audio otomatis",
+    pActive: "AKTIF",
+    pComingSoon: "SEGERA HADIR",
+    pLocked: "Fitur Terkunci",
+    pFreeDesc: "Akses gratis selamanya ke dashboard spoofer",
+    pAudio30dDesc: "Akses bypass audio selama 30 Hari",
+    pAudioLifetimeDesc: "Akses bypass audio permanen",
+    pMixer7dDesc: "Akses mixer audio selama 7 Hari",
+    pMixer30dDesc: "Akses mixer audio selama 30 Hari",
+    pMixerLifetimeDesc: "Akses mixer audio permanen",
+    pPeriod30d: "30 Hari",
+    pPeriod7d: "7 Hari",
+    pPeriodLifetime: "Permanen",
+    pLaunchSpoofer: "Buka Spoofer",
+    pLaunchAudio: "Buka Audio",
+    pLaunchMixer: "Buka Mixer",
+
+    // Get Started Card
+    gWelcome: "Selamat Datang di BernadaStore",
+    gWelcomeDesc: "Masuk atau Daftar dengan aman menggunakan akun Discord Anda. Dapatkan akses langsung ke spoofer dashboard, saldo koin, dan log riwayat bypass.",
+    gContinue: "Lanjutkan dengan Discord",
+    gWelcomeBack: "Selamat Datang Kembali!",
+    gWelcomeBackDesc: "Halo, {username}. Sesi Anda aktif. Buka dashboard untuk menggunakan spoofer, koin, dan memantau riwayat upload Anda.",
+    gGoDashboard: "Masuk ke Dashboard"
+  },
+  en: {
+    heroTitle: "Master Roblox Creativity Without Limits: Spoofer, Audio Bypass & DJ Mixer",
+    heroSub: "Use Bernada Spoofer (UGC & Mesh) for FREE, modify audio frequency patterns with high precision via Bernada Audio, and design professional music setlist transitions with Bernada Mixing.",
+    tickNoVerification: "No ID Verification",
+    tickSeconds: "Setup in Seconds",
+    tickAutomated: "Fully Automated & Secure",
+    tabStart: "Get Started Now",
+    tabFeatures: "View Features",
+    tabPricelist: "Pricelist",
+    
+    // Slide 0
+    s0Badge: "ROBLOX BYPASS LEADER",
+    s0Title: "Automated Asset Spoofer",
+    s0Desc: "Instantly bypass verification for UGC accessories, clothing, animations, and videos. Automatically upload directly to the Roblox cloud catalog with a 99.6% success rate.",
+    s0Check1: "Supports UGC, Mesh, Anim, Audio & Video",
+    s0Check2: "Direct Auto-Upload to Roblox Catalog",
+    
+    // Slide 1
+    s1Badge: "ADVANCED AUDIO BYPASS",
+    s1Title: "Precision Sound Processor",
+    s1Desc: "Modify frequency patterns, speed indices, and stereo delays to bypass Roblox copyright detection. Segment long tracks automatically in real-time.",
+    s1Check1: "Multi-Speed Processing (0.5x - 4.0x)",
+    s1Check2: "Automatic Slicing & Segmenting",
+
+    // Slide 2
+    s2Badge: "DEVELOPER SOUND SUITE",
+    s2Title: "Harmonic Transition Mixer",
+    s2Desc: "Generate customized soundtracks, setlists, and beat drops. Fully integrated with offline faster-than-realtime rendering engines.",
+    s2Check1: "Web Audio API Stereo Routing & Faders",
+    s2Check2: "Pitch Locked Transitions & BPM Ramps",
+    
+    // Features slide
+    fTitle: "Platform Features & Benefits",
+    fSub: "Unlock Roblox development power with measurable efficiency and cloud automation.",
+    fCard1Title: "Anti-Detect & Secure",
+    fCard1Desc: "Verified anti-detection and bypass algorithms protect developer accounts during uploads.",
+    fCard2Title: "Bypass Verification",
+    fCard2Desc: "Instantly bypass asset verification limits without complex ID validation.",
+    fCard3Title: "24/7 Cloud Automation",
+    fCard3Desc: "Bypassing operates entirely on our cloud. Initiate upload operations at any hour for instant results.",
+    
+    // Pricelist slide
+    pTitle: "Explore Bernada Developer Tools",
+    pSub: "Select the workspace tool that fits your game development needs. We offer flexible plans.",
+    pSpooferDesc: "Unlimited bypass engine for creators",
+    pAudioDesc: "Advanced bypass sound processor",
+    pMixerDesc: "Advanced sound setlist mixer",
+    pActive: "ACTIVE",
+    pComingSoon: "COMING SOON",
+    pLocked: "Locked Feature",
+    pFreeDesc: "Forever free access to spoofer dashboard",
+    pAudio30dDesc: "Bypass sound processor access for 30 Days",
+    pAudioLifetimeDesc: "Lifetime bypass sound processor access",
+    pMixer7dDesc: "Mixer console access for 7 Days",
+    pMixer30dDesc: "Mixer console access for 30 Days",
+    pMixerLifetimeDesc: "Lifetime mixer console access",
+    pPeriod30d: "30 Days",
+    pPeriod7d: "7 Days",
+    pPeriodLifetime: "Lifetime",
+    pLaunchSpoofer: "Launch Spoofer",
+    pLaunchAudio: "Launch Audio",
+    pLaunchMixer: "Launch Mixer",
+
+    // Get Started Card
+    gWelcome: "Welcome to BernadaStore",
+    gWelcomeDesc: "Sign in or Register securely using Discord. Get immediate access to your spoofer dashboard, coins balance, and bypass logs.",
+    gContinue: "Continue with Discord",
+    gWelcomeBack: "Welcome Back!",
+    gWelcomeBackDesc: "Hello, {username}. Your session is active. Go to your dashboard to use spoofer, coins, and monitor your upload history.",
+    gGoDashboard: "Go to Dashboard"
+  }
+};
 
 export default function LandingPage() {
-  const countersRef = useRef(false);
+  const { user } = useAuth();
+  const { language } = useLanguage();
+  const [mockActiveTab, setMockActiveTab] = useState('ugc');
+  const [mockActiveIndicator, setMockActiveIndicator] = useState(0);
+  const [audioPeriod, setAudioPeriod] = useState('30d'); // '30d' or 'lifetime'
+  const [mixingPeriod, setMixingPeriod] = useState('30d'); // '7d', '30d', 'lifetime'
+  const [activeTab, setActiveTab] = useState(null); // null, 'get-started', 'features', 'pricelist'
+  const [authMode, setAuthMode] = useState('register'); // 'register' or 'login'
 
+  const t = (key) => translations[language]?.[key] || key;
+
+  const getWelcomeBackDesc = () => {
+    return t('gWelcomeBackDesc').replace('{username}', user?.discordUsername || user?.username || 'User');
+  };
+
+  // Auto-switch carousel dots every 5s
   useEffect(() => {
-    // Counter animation
-    const animateCounter = (el) => {
-      const target = parseFloat(el.dataset.count);
-      const isFloat = target % 1 !== 0;
-      const duration = 2000;
-      const start = performance.now();
-      const update = (now) => {
-        const progress = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        el.textContent = isFloat ? (eased * target).toFixed(1) : Math.floor(eased * target).toLocaleString();
-        if (progress < 1) requestAnimationFrame(update);
-      };
-      requestAnimationFrame(update);
-    };
-
-    // Intersection Observer for animations
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          if (entry.target.dataset.count && !countersRef.current) {
-            animateCounter(entry.target);
-          }
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-    document.querySelectorAll('[data-count]').forEach(el => {
-      const cObserver = new IntersectionObserver((entries) => {
-        entries.forEach(e => { if (e.isIntersecting) { animateCounter(e.target); cObserver.unobserve(e.target); } });
-      }, { threshold: 0.5 });
-      cObserver.observe(el);
-    });
-
-    // FAQ
-    document.querySelectorAll('.faq-q').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const item = btn.parentElement;
-        document.querySelectorAll('.faq-item').forEach(i => { if (i !== item) i.classList.remove('open'); });
-        item.classList.toggle('open');
-      });
-    });
-
-    return () => observer.disconnect();
+    const intv = setInterval(() => {
+      setMockActiveIndicator(prev => (prev + 1) % 3);
+    }, 5000);
+    return () => clearInterval(intv);
   }, []);
 
-  const features = [
-    { icon: '⚡', title: 'Bulk Spoof Engine', desc: 'Input LUA table or raw IDs and spoof hundreds of items. Batch processing with parallel execution.', tags: ['LUA Support', 'Raw IDs', 'Parallel'] },
-    { icon: '📋', title: 'Real-Time Logs', desc: 'Live execution logs with timestamps, status indicators, file sizes, and searchable history.' },
-    { icon: '☁️', title: 'Auto Upload', desc: 'Direct upload to Roblox Open Cloud API. Spoofed assets deploy instantly to your account.' },
-    { icon: '📊', title: 'Deployment Summary', desc: 'Track total attempts, success rates, failed items, and timestamps in a clean dashboard.' },
-    { icon: '✅', title: '99.3% Success Rate', desc: 'Industry-leading spoof accuracy. Failed attempts auto-retry with exponential backoff.' },
-    { icon: '📈', title: 'Progress Tracking', desc: 'Visual progress bars, time-elapsed counters, and per-item status monitoring.' },
-  ];
-
-  const bypasses = [
-    { title: 'Asset ID Bypass', desc: 'Bypass asset restrictions by remapping IDs.', list: ['UGC Items', 'Animations', 'Meshes', 'Audio'] },
-    { title: 'HWID Spoof', desc: 'Hardware ID spoofing to bypass device bans.', list: ['Device Fingerprint', 'MAC Address', 'Disk Serial', 'BIOS UUID'] },
-    { title: 'Rate Limit Bypass', desc: 'Smart throttling with auto rate limit detection.', list: ['Auto Throttle', 'Queue Mgmt', 'Retry Logic', 'Cooldown'] },
-    { title: 'Open Cloud API', desc: 'Direct Roblox Open Cloud integration.', list: ['Bulk Upload', 'Version Control', 'Auto Deploy', 'Webhooks'] },
-    { title: 'Anti-Detection', desc: 'Multi-layer evasion with encrypted payloads.', list: ['Encrypted', 'Timing Random', 'Session Rotate', 'Proxy'] },
-    { title: 'Multi-Account', desc: 'Manage multiple Roblox accounts simultaneously.', list: ['Switching', 'Shared Pool', 'Unified Logs', 'Batch Ops'] },
-  ];
-
-  const faqs = [
-    { q: 'What is BMK Spoofer?', a: 'BMK Spoofer is an advanced asset spoofing tool that allows you to bypass restrictions and refake banned or disabled assets. It supports bulk operations, auto-upload to Roblox Open Cloud, and real-time logs.' },
-    { q: 'How does the bypass feature work?', a: 'The bypass engine remaps asset IDs, generates new references, and uses advanced techniques to circumvent restrictions. Works with UGC, animations, meshes, audio, and more.' },
-    { q: 'Is it safe to use?', a: 'BMK Spoofer uses encrypted payloads, randomized timing, and session fingerprint rotation to minimize detection. The anti-detection module is continuously updated.' },
-    { q: 'What formats are supported?', a: 'LUA table format: { "Name", 12345 } or raw asset IDs, one per line. Both formats are parsed and queued for bulk processing.' },
-    { q: 'Can I use multiple accounts?', a: 'Pro supports 3 accounts, Enterprise supports unlimited. Switch accounts, share asset pools, and view unified logs.' },
-    { q: 'How do I get support?', a: 'Starter: email support. Pro: priority Discord. Enterprise: 24/7 dedicated support with under 1 hour response time.' },
-  ];
-
   return (
-    <div style={{ position: 'relative', zIndex: 1 }}>
-      <style jsx>{`
-        .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
-        .reveal.visible { opacity: 1; transform: translateY(0); }
-        .feature-card:hover { transform: translateY(-4px); border-color: rgba(57,255,20,0.2); box-shadow: 0 0 30px rgba(57,255,20,0.08); }
-        .bypass-card:hover { transform: translateY(-4px); border-color: rgba(57,255,20,0.2); box-shadow: 0 0 30px rgba(57,255,20,0.08); }
-        .pricing-card:hover { transform: translateY(-4px); }
-        .faq-item .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
-        .faq-item.open .faq-a { max-height: 300px; }
-        .faq-item.open .faq-toggle { transform: rotate(45deg); }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-up { animation: fadeUp 0.6s ease-out both; }
-        .fade-up-d1 { animation-delay: 0.1s; }
-        .fade-up-d2 { animation-delay: 0.2s; }
-        .fade-up-d3 { animation-delay: 0.3s; }
-        .fade-up-d4 { animation-delay: 0.4s; }
-      `}</style>
+    <div style={{
+      height: '100vh',
+      background: 'radial-gradient(circle at top right, rgba(37, 99, 235, 0.05) 0%, rgba(255, 255, 255, 1) 70%), #ffffff',
+      color: '#1e293b',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'relative',
+      overflow: 'hidden',
+      boxSizing: 'border-box',
+      paddingTop: 80 // Add padding top to account for fixed navbar
+    }}>
+      {/* Main Hero Section */}
+      <div style={{
+        maxWidth: 1000,
+        width: '100%',
+        margin: '0 auto',
+        padding: '20px 20px 0 20px',
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        zIndex: 2,
+        flexShrink: 0
+      }}>
 
-      {/* Glow effects */}
-      <div style={{ position: 'fixed', width: 600, height: 600, background: 'rgba(57,255,20,0.06)', borderRadius: '50%', filter: 'blur(120px)', top: -200, left: -100, pointerEvents: 'none', zIndex: 0 }}></div>
-      <div style={{ position: 'fixed', width: 500, height: 500, background: 'rgba(0,229,255,0.04)', borderRadius: '50%', filter: 'blur(120px)', bottom: -150, right: -100, pointerEvents: 'none', zIndex: 0 }}></div>
+        {/* Huge Headline */}
+        <h1 style={{
+          fontSize: '2.1rem',
+          fontWeight: 900,
+          letterSpacing: '-0.03em',
+          lineHeight: 1.15,
+          color: '#0f172a',
+          margin: '0 0 8px 0',
+          maxWidth: 820,
+          background: 'linear-gradient(to right, #1e3a8a, #2563eb, #7c3aed)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent'
+        }}>
+          {t('heroTitle')}
+        </h1>
 
-      {/* HERO */}
-      <section style={{ padding: '160px 0 100px' }}>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: 60, alignItems: 'center' }}>
-          <div>
-            <div className="fade-up" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 100, background: 'var(--accent-dim)', border: '1px solid rgba(57,255,20,0.2)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent)', marginBottom: 24 }}>
-              <span style={{ width: 6, height: 6, background: 'var(--accent)', borderRadius: '50%', display: 'inline-block' }}></span>
-              v3.2 — Latest Update
-            </div>
-            <h1 className="fade-up fade-up-d1" style={{ fontSize: '4.5rem', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.04em', marginBottom: 20 }}>
-              BMK<br /><span className="text-accent" style={{ textShadow: '0 0 40px rgba(57,255,20,0.3)' }}>Spoofer</span>
-            </h1>
-            <p className="fade-up fade-up-d2" style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: 480, marginBottom: 32 }}>
-              Bypass and Refake any banned or disabled devices in any services. Bulk spoof assets, auto-upload to Roblox Open Cloud, real-time execution logs.
-            </p>
-            <div className="fade-up fade-up-d3" style={{ display: 'flex', gap: 40, marginBottom: 40 }}>
-              <div><div data-count="15420" style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>0</div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Active Users</div></div>
-              <div><div data-count="99.3" style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>0</div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Success Rate %</div></div>
-              <div><div data-count="2847" style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>0</div><div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Spoofed Today</div></div>
-            </div>
-            <div className="fade-up fade-up-d4" style={{ display: 'flex', gap: 16 }}>
-              <Link href="/register" className="btn btn-primary btn-lg">⭐ Get Started</Link>
-              <Link href="#features" className="btn btn-outline btn-lg">▶ Learn More</Link>
-            </div>
+        {/* Sub-headline */}
+        <p style={{
+          fontSize: '0.88rem',
+          color: '#475569',
+          lineHeight: 1.5,
+          maxWidth: 720,
+          margin: '0 0 12px 0'
+        }}>
+          {t('heroSub')}
+        </p>
+
+        {/* Tick list */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 16,
+          marginBottom: 16,
+          flexWrap: 'wrap'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>
+            <span style={{ color: '#2563eb', fontWeight: 900 }}>✓</span> {t('tickNoVerification')}
           </div>
-          <div className="fade-up fade-up-d3">
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: '0 0 30px rgba(57,255,20,0.08), 0 20px 60px rgba(0,0,0,0.5)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'rgba(20,20,20,0.9)', borderBottom: '1px solid var(--border-subtle)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>
+            <span style={{ color: '#2563eb', fontWeight: 900 }}>✓</span> {t('tickSeconds')}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>
+            <span style={{ color: '#2563eb', fontWeight: 900 }}>✓</span> {t('tickAutomated')}
+          </div>
+        </div>
+
+        {/* Tab Buttons (Instead of Scroll down) */}
+        <div style={{
+          display: 'flex',
+          gap: 12,
+          marginBottom: 20,
+          justifyContent: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={() => setActiveTab('get-started')}
+            style={{
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              color: activeTab === 'get-started' ? '#fff' : '#334155',
+              background: activeTab === 'get-started' ? '#2563eb' : '#fff',
+              border: activeTab === 'get-started' ? 'none' : '1px solid #cbd5e1',
+              padding: '10px 22px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              boxShadow: activeTab === 'get-started' ? '0 4px 20px rgba(37, 99, 235, 0.3)' : 'none',
+              transition: 'all 0.2s ease',
+              outline: 'none'
+            }}
+            className={activeTab === 'get-started' ? 'btn-hover-scale' : 'btn-hover-white'}
+          >
+            {t('tabStart')}
+          </button>
+          <button
+            onClick={() => setActiveTab('features')}
+            style={{
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              color: activeTab === 'features' ? '#fff' : '#334155',
+              background: activeTab === 'features' ? '#2563eb' : '#fff',
+              border: activeTab === 'features' ? 'none' : '1px solid #cbd5e1',
+              padding: '10px 22px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              boxShadow: activeTab === 'features' ? '0 4px 20px rgba(37, 99, 235, 0.3)' : 'none',
+              transition: 'all 0.2s ease',
+              outline: 'none'
+            }}
+            className={activeTab === 'features' ? 'btn-hover-scale' : 'btn-hover-white'}
+          >
+            {t('tabFeatures')}
+          </button>
+          <button
+            onClick={() => setActiveTab('pricelist')}
+            style={{
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              color: activeTab === 'pricelist' ? '#fff' : '#334155',
+              background: activeTab === 'pricelist' ? '#2563eb' : '#fff',
+              border: activeTab === 'pricelist' ? 'none' : '1px solid #cbd5e1',
+              padding: '10px 22px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              boxShadow: activeTab === 'pricelist' ? '0 4px 20px rgba(37, 99, 235, 0.3)' : 'none',
+              transition: 'all 0.2s ease',
+              outline: 'none'
+            }}
+            className={activeTab === 'pricelist' ? 'btn-hover-scale' : 'btn-hover-white'}
+          >
+            {t('tabPricelist')}
+          </button>
+        </div>
+
+        {/* Tab Slides Content */}
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center', maxHeight: 'calc(100vh - 350px)', overflowY: 'auto', paddingRight: 4 }}>
+          {/* Slide Default: Mockup Preview (when visiting landing page) */}
+          {activeTab === null && (
+            <div style={{
+              background: '#ffffff',
+              borderRadius: 16,
+              padding: 6,
+              boxShadow: '0 20px 50px rgba(37, 99, 235, 0.08)',
+              border: '1px solid #cbd5e1',
+              position: 'relative',
+              width: '100%',
+              maxWidth: 900,
+              marginBottom: 16
+            }}>
+              {/* Browser Window Bar */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 16px',
+                borderBottom: '1px solid #cbd5e1',
+                background: '#f1f5f9',
+                borderTopLeftRadius: 10,
+                borderTopRightRadius: 10
+              }}>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#FF5F57' }}></span>
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#FEBC2E' }}></span>
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#28C840' }}></span>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#ff5f56', display: 'inline-block' }}></span>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#ffbd2e', display: 'inline-block' }}></span>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#27c93f', display: 'inline-block' }}></span>
                 </div>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>BMK Spoofer — Dashboard</span>
+                <div style={{
+                  background: '#e2e8f0',
+                  borderRadius: 6,
+                  padding: '2px 30px',
+                  fontSize: '0.65rem',
+                  color: '#475569',
+                  fontFamily: 'monospace'
+                }}>
+                  dashboard.bernadastore.com/spoofer
+                </div>
+                <div style={{ width: 30 }}></div>
               </div>
-              <div style={{ padding: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>BMK Spoofer</span>
-                  <div style={{ display: 'flex', gap: 12, fontSize: '0.65rem', fontWeight: 600 }}>
-                    <span style={{ color: 'var(--warning)' }}>● 250 COINS</span>
-                    <span style={{ color: 'var(--accent)' }}>● CONNECTED</span>
+
+              {/* Interactive Screen Preview: 3-Slide Auto Marketing Carousel */}
+              <div style={{
+                background: '#ffffff',
+                borderBottomLeftRadius: 10,
+                borderBottomRightRadius: 10,
+                position: 'relative',
+                minHeight: 320,
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'stretch'
+              }}>
+                {/* Slide 0: BERNADA SPOOFER */}
+                {mockActiveIndicator === 0 && (
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1.2fr 1fr',
+                    width: '100%',
+                    animation: 'fadeIn 0.6s ease-in-out'
+                  }}>
+                    {/* Marketing Text Content */}
+                    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <span style={{
+                        background: 'rgba(37, 99, 235, 0.1)',
+                        color: '#2563eb',
+                        fontSize: '0.65rem',
+                        fontWeight: 800,
+                        padding: '4px 10px',
+                        borderRadius: 100,
+                        letterSpacing: '0.05em',
+                        width: 'fit-content',
+                        marginBottom: 12
+                      }}>
+                        {t('s0Badge')}
+                      </span>
+                      <h2 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', margin: '0 0 8px 0', lineHeight: 1.2 }}>
+                        {t('s0Title')}
+                      </h2>
+                      <p style={{ fontSize: '0.8rem', color: '#475569', lineHeight: 1.5, margin: '0 0 14px 0' }}>
+                        {t('s0Desc')}
+                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.72rem', color: '#475569' }}>
+                          <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> {t('s0Check1')}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.72rem', color: '#475569' }}>
+                          <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> {t('s0Check2')}
+                        </div>
+                      </div>
+                    </div>
+                    {/* Visual Aspect: Centered Spoofer Web UI */}
+                    <div style={{
+                      position: 'relative',
+                      background: '#090a0f',
+                      borderRadius: '0 0 10px 0',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: 10,
+                      height: '100%'
+                    }}>
+                      <img 
+                        src="/spoofer_cyber_art.png" 
+                        alt="UGC Cyber Spoofer" 
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'contain'
+                        }} 
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Slide 1: BERNADA AUDIO */}
+                {mockActiveIndicator === 1 && (
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1.2fr 1fr',
+                    width: '100%',
+                    animation: 'fadeIn 0.6s ease-in-out'
+                  }}>
+                    {/* Marketing Text Content */}
+                    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <span style={{
+                        background: 'rgba(37, 99, 235, 0.1)',
+                        color: '#2563eb',
+                        fontSize: '0.65rem',
+                        fontWeight: 800,
+                        padding: '4px 10px',
+                        borderRadius: 100,
+                        letterSpacing: '0.05em',
+                        width: 'fit-content',
+                        marginBottom: 10
+                      }}>
+                        {t('s1Badge')}
+                      </span>
+                      <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: '0 0 6px 0', lineHeight: 1.2 }}>
+                        {t('s1Title')}
+                      </h2>
+                      <p style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.4, margin: '0 0 12px 0' }}>
+                        {t('s1Desc')}
+                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.7rem', color: '#475569' }}>
+                          <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> {t('s1Check1')}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.7rem', color: '#475569' }}>
+                          <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> {t('s1Check2')}
+                        </div>
+                      </div>
+                    </div>
+                    {/* Visual Aspect: Centered Audio Image */}
+                    <div style={{
+                      position: 'relative',
+                      background: '#090a0f',
+                      borderRadius: '0 0 10px 0',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: 10,
+                      height: '100%'
+                    }}>
+                      <img 
+                        src="/audio_spectrum_neon.png" 
+                        alt="Audio Spectrum Neon" 
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'contain'
+                        }} 
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Slide 2: BERNADA MIXER */}
+                {mockActiveIndicator === 2 && (
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1.2fr 1fr',
+                    width: '100%',
+                    animation: 'fadeIn 0.6s ease-in-out'
+                  }}>
+                    {/* Marketing Text Content */}
+                    <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <span style={{
+                        background: 'rgba(37, 99, 235, 0.1)',
+                        color: '#2563eb',
+                        fontSize: '0.65rem',
+                        fontWeight: 800,
+                        padding: '4px 10px',
+                        borderRadius: 100,
+                        letterSpacing: '0.05em',
+                        width: 'fit-content',
+                        marginBottom: 10
+                      }}>
+                        {t('s2Badge')}
+                      </span>
+                      <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: '0 0 6px 0', lineHeight: 1.2 }}>
+                        {t('s2Title')}
+                      </h2>
+                      <p style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.4, margin: '0 0 12px 0' }}>
+                        {t('s2Desc')}
+                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.7rem', color: '#475569' }}>
+                          <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> {t('s2Check1')}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.7rem', color: '#475569' }}>
+                          <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> {t('s2Check2')}
+                        </div>
+                      </div>
+                    </div>
+                    {/* Visual Aspect: Centered Mixer Image */}
+                    <div style={{
+                      position: 'relative',
+                      background: '#090a0f',
+                      borderRadius: '0 0 10px 0',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: 10,
+                      height: '100%'
+                    }}>
+                      <img 
+                        src="/mixer_console_neon.png" 
+                        alt="Mixer Console Neon" 
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'contain'
+                        }} 
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Carousel Dots */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 6,
+                marginTop: 20,
+                marginBottom: 10
+              }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: mockActiveIndicator === 0 ? '#2563eb' : 'rgba(255,255,255,0.15)', transition: 'background 0.3s' }}></span>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: mockActiveIndicator === 1 ? '#2563eb' : 'rgba(255,255,255,0.15)', transition: 'background 0.3s' }}></span>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: mockActiveIndicator === 2 ? '#2563eb' : 'rgba(255,255,255,0.15)', transition: 'background 0.3s' }}></span>
+              </div>
+            </div>
+          )}
+
+          {/* Slide 1: Get Started Now (Discord Login Only, Centered) */}
+          {activeTab === 'get-started' && (
+            <div style={{
+              width: '100%',
+              maxWidth: 500,
+              marginBottom: 80,
+              textAlign: 'left'
+            }}>
+              {user ? (
+                /* Authenticated User Dashboard Redirection Card */
+                <div style={{
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: 18,
+                  padding: '40px 32px',
+                  boxShadow: '0 10px 30px rgba(37, 99, 235, 0.03)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'stretch',
+                  minHeight: 320,
+                  animation: 'fadeIn 0.4s ease'
+                }}>
+                  <div style={{ textAlign: 'center', marginBottom: 30 }}>
+                    <div style={{ position: 'relative', width: 72, height: 72, margin: '0 auto 16px auto' }}>
+                      {user.discordAvatar ? (
+                        <img 
+                          src={user.discordAvatar} 
+                          alt="Discord Avatar" 
+                          style={{
+                            width: 72,
+                            height: 72,
+                            borderRadius: '50%',
+                            border: '3px solid #2563eb',
+                            boxShadow: '0 4px 14px rgba(37, 99, 235, 0.2)'
+                          }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: 72,
+                          height: 72,
+                          borderRadius: '50%',
+                          background: 'var(--accent-dim)',
+                          color: 'var(--accent)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1.8rem',
+                          fontWeight: 800
+                        }}>
+                          {(user.discordUsername || user.username)?.[0]?.toUpperCase()}
+                        </div>
+                      )}
+                      <span style={{
+                        position: 'absolute',
+                        bottom: 2,
+                        right: 2,
+                        width: 14,
+                        height: 14,
+                        background: '#22c55e',
+                        border: '2px solid #fff',
+                        borderRadius: '50%',
+                        display: 'block'
+                      }} />
+                    </div>
+                    <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0' }}>
+                      {t('gWelcomeBack')}
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
+                      {getWelcomeBackDesc()}
+                    </p>
+                  </div>
+
+                  <Link href="/dashboard" style={{
+                    width: '100%',
+                    background: '#2563eb',
+                    color: '#fff',
+                    textAlign: 'center',
+                    padding: '16px 0',
+                    borderRadius: 12,
+                    fontSize: '0.92rem',
+                    fontWeight: 800,
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 10,
+                    boxShadow: '0 4px 18px rgba(37, 99, 235, 0.3)',
+                    transition: 'all 0.2s ease'
+                  }} className="btn-hover-scale">
+                    {t('gGoDashboard')}
+                  </Link>
+                </div>
+              ) : (
+                /* Discord Auth Gateway Card */
+                <div style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 18,
+                  padding: '40px 32px',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.02)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'stretch',
+                  minHeight: 320
+                }}>
+                  <div style={{ textAlign: 'center', marginBottom: 30 }}>
+                    <div style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: '50%',
+                      background: 'rgba(88, 101, 242, 0.08)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '2rem',
+                      color: '#5865F2',
+                      margin: '0 auto 16px auto'
+                    }}>
+                      👾
+                    </div>
+                    <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0' }}>
+                      {t('gWelcome')}
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
+                      {t('gWelcomeDesc')}
+                    </p>
+                  </div>
+
+                  <a href="/api/auth/discord" style={{
+                    width: '100%',
+                    background: '#5865F2',
+                    color: '#fff',
+                    textAlign: 'center',
+                    padding: '16px 0',
+                    borderRadius: 12,
+                    fontSize: '0.92rem',
+                    fontWeight: 800,
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 10,
+                    boxShadow: '0 4px 18px rgba(88, 101, 242, 0.35)',
+                    transition: 'all 0.2s ease'
+                  }} className="btn-hover-scale">
+                    {t('gContinue')}
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Slide 2: View Features */}
+          {activeTab === 'features' && (
+            <div id="features" style={{
+              width: '100%',
+              maxWidth: 900,
+              paddingTop: 10,
+              textAlign: 'center',
+              marginBottom: 80
+            }}>
+              <h2 style={{
+                fontSize: '2rem',
+                fontWeight: 800,
+                letterSpacing: '-0.02em',
+                color: '#0f172a',
+                margin: '0 0 10px 0',
+                background: 'linear-gradient(to right, #1e3a8a, #7c3aed)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>
+                {t('fTitle')}
+              </h2>
+              <p style={{
+                fontSize: '0.95rem',
+                color: '#64748b',
+                marginBottom: 48,
+                maxWidth: 600,
+                margin: '0 auto 48px auto'
+              }}>
+                {t('fSub')}
+              </p>
+
+              {/* Features Grid Matching Mockup Layout */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1.1fr 1.2fr',
+                gap: 24,
+                textAlign: 'left'
+              }}>
+                {/* Left Column: Two Stacked Cards */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 24
+                }}>
+                  {/* Card 1: 100% Secure */}
+                  <div style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 18,
+                    padding: '28px 24px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 12
+                  }}>
+                    <div style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: '50%',
+                      background: 'rgba(37, 99, 235, 0.08)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#2563eb',
+                      fontSize: '1rem',
+                      fontWeight: 'bold'
+                    }}>
+                      🛡️
+                    </div>
+                    <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#2563eb', letterSpacing: '-0.02em', margin: '4px 0 0 0' }}>100%</div>
+                    <h3 style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                      {t('fCard1Title')}
+                    </h3>
+                    <p style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
+                      {t('fCard1Desc')}
+                    </p>
+                  </div>
+
+                  {/* Card 2: 0 Limits */}
+                  <div style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 18,
+                    padding: '28px 24px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 12
+                  }}>
+                    <div style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: '50%',
+                      background: 'rgba(34, 197, 94, 0.08)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#22c55e',
+                      fontSize: '1rem',
+                      fontWeight: 'bold'
+                    }}>
+                      ☑
+                    </div>
+                    <div style={{ fontSize: '2.2rem', fontWeight: 800, color: '#22c55e', letterSpacing: '-0.02em', margin: '4px 0 0 0' }}>0 Limits</div>
+                    <h3 style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                      {t('fCard2Title')}
+                    </h3>
+                    <p style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>
+                      {t('fCard2Desc')}
+                    </p>
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 12 }}>
-                  {[['273', 'Total'], ['271', 'Success'], ['0', 'Failed']].map(([v, l], i) => (
-                    <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 8, background: 'rgba(25,25,25,0.6)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                      <span style={{ fontWeight: 800, fontSize: '1.1rem', fontFamily: 'var(--font-mono)', color: i === 1 ? 'var(--accent)' : i === 2 ? 'var(--fail)' : 'var(--text-primary)' }}>{v}</span>
-                      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{l}</span>
+
+                {/* Right Column: Prominent Blue Highlight Card */}
+                <div style={{
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  borderRadius: 24,
+                  padding: '40px 32px',
+                  color: '#ffffff',
+                  boxShadow: '0 12px 30px rgba(37, 99, 235, 0.15)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: 420
+                }}>
+                  <div>
+                    <div style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: '50%',
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem',
+                      marginBottom: 20
+                    }}>
+                      🎮
                     </div>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {['Sonic Pose → 6.92 KB', 'Jojo Pose → 7.83 KB', 'Clean Kicks → 56.81 KB', 'Cannonball → 288.78 KB'].map((msg, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 8px', borderRadius: 4, background: 'rgba(25,25,25,0.4)', fontFamily: 'var(--font-mono)', fontSize: '0.6rem' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>14:42:56</span>
-                      <span style={{ color: 'var(--accent)', fontWeight: 700 }}>SUCCESS</span>
-                      <span style={{ color: 'var(--text-secondary)' }}>{msg}</span>
+                    <div style={{ fontSize: '2.4rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>3 Services</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4, marginBottom: 16 }}>Integrated Tools</div>
+                    <div style={{ fontSize: '0.85rem', opacity: 0.85, lineHeight: 1.6, marginBottom: 24 }}>
+                      Access our complete developer suite: Bernada Spoofer (supporting UGC, Mesh, Animation, Audio, & Video with direct Auto-Upload to Roblox), Bernada Audio (advanced sound processing), and Bernada Mixer.
                     </div>
-                  ))}
+                  </div>
+
+                  <Link href="/register" style={{
+                    background: '#ffffff',
+                    color: '#2563eb',
+                    textAlign: 'center',
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.06)',
+                    display: 'block'
+                  }} className="btn-hover-white">
+                    Launch Spoofer Engine
+                  </Link>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* FEATURES */}
-      <section id="features" style={{ padding: '100px 0' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 60 }}>
-            <span className="section-tag">Features</span>
-            <h2 className="section-title">Powerful Spoofing <span className="text-accent">Engine</span></h2>
-            <p className="section-desc">Everything you need to bypass restrictions and manage assets at scale.</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
-            {features.map((f, i) => (
-              <div key={i} className="feature-card reveal" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 32, transition: 'var(--transition)', cursor: 'default', transitionDelay: `${i * 0.08}s` }}>
-                <div style={{ width: 52, height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-md)', background: 'var(--accent-dim)', fontSize: '1.4rem', marginBottom: 20 }}>{f.icon}</div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: 10 }}>{f.title}</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>{f.desc}</p>
-                {f.tags && <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>{f.tags.map(t => <span key={t} style={{ padding: '4px 12px', borderRadius: 100, background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.15)', fontSize: '0.7rem', fontWeight: 600, color: 'var(--accent)' }}>{t}</span>)}</div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* BYPASS */}
-      <section id="bypass" style={{ padding: '100px 0' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 60 }}>
-            <span className="section-tag">Bypass</span>
-            <h2 className="section-title">Bypass <span className="text-accent">Capabilities</span></h2>
-            <p className="section-desc">Advanced bypass engine across multiple platforms.</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
-            {bypasses.map((b, i) => (
-              <div key={i} className="bypass-card reveal" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: 28, transition: 'var(--transition)', transitionDelay: `${i * 0.08}s` }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                  <div style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--radius-md)', background: 'var(--accent-dim)', color: 'var(--accent)' }}>⚡</div>
-                  <span className="badge badge-success">Active</span>
-                </div>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 10 }}>{b.title}</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 16 }}>{b.desc}</p>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {b.list.map(l => <li key={l} style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>▸ {l}</li>)}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section id="pricing" style={{ padding: '100px 0' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 60 }}>
-            <span className="section-tag">Pricing</span>
-            <h2 className="section-title">Choose Your <span className="text-accent">Plan</span></h2>
-            <p className="section-desc">Flexible plans with bypass features and auto-updates.</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24, alignItems: 'start' }}>
-            {[
-              { tier: 'Starter', price: '9.99', features: ['50 Spoofs/day', 'Basic Bypass', 'Single Account', 'Execution Logs', 'Email Support'], disabled: ['HWID Spoof', 'Open Cloud API', 'Priority Support'] },
-              { tier: 'Pro', price: '24.99', featured: true, features: ['Unlimited Spoofs', 'Advanced Bypass', '3 Accounts', 'Real-Time Logs', 'HWID Spoof', 'Open Cloud API', 'Auto Upload'], disabled: ['Priority Support'] },
-              { tier: 'Enterprise', price: '49.99', features: ['Unlimited Spoofs', 'Full Bypass Suite', 'Unlimited Accounts', 'Advanced Analytics', 'HWID Spoof', 'Open Cloud API', 'Auto Upload + ZIP', '24/7 Priority Support'], disabled: [] },
-            ].map((plan, i) => (
-              <div key={i} className="pricing-card reveal" style={{
-                background: 'var(--bg-card)', border: `1px solid ${plan.featured ? 'rgba(57,255,20,0.3)' : 'var(--border-subtle)'}`,
-                borderRadius: 'var(--radius-xl)', padding: 36, transition: 'var(--transition)', position: 'relative',
-                transform: plan.featured ? 'scale(1.03)' : 'none',
-                boxShadow: plan.featured ? '0 0 30px rgba(57,255,20,0.08)' : 'none',
-                transitionDelay: `${i * 0.1}s`,
+              {/* Bottom Full-width Row: Clock/Auto card */}
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: 18,
+                padding: '24px 28px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
+                marginTop: 24,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 20,
+                textAlign: 'left'
               }}>
-                {plan.featured && <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', padding: '4px 20px', background: 'var(--accent)', color: '#000', fontSize: '0.7rem', fontWeight: 700, borderRadius: 100 }}>Most Popular</div>}
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{plan.tier}</div>
-                <div style={{ marginBottom: 28, display: 'flex', alignItems: 'baseline', gap: 2 }}>
-                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--accent)' }}>$</span>
-                  <span style={{ fontSize: '3.2rem', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1 }}>{plan.price}</span>
-                  <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>/mo</span>
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  background: 'rgba(124, 58, 237, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#7c3aed',
+                  fontSize: '1.2rem',
+                  flexShrink: 0
+                }}>
+                  🕒
                 </div>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
-                  {plan.features.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.875rem', color: 'var(--text-secondary)' }}><span style={{ color: 'var(--accent)', fontWeight: 700 }}>✓</span> {f}</li>)}
-                  {plan.disabled.map(f => <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.875rem', color: 'var(--text-muted)', opacity: 0.5 }}><span style={{ color: 'var(--fail)', fontWeight: 700 }}>✕</span> {f}</li>)}
-                </ul>
-                <Link href="/register" className={`btn ${plan.featured ? 'btn-primary' : 'btn-outline'}`} style={{ width: '100%', padding: 14, textAlign: 'center' }}>Get {plan.tier}</Link>
+                <div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#7c3aed', letterSpacing: '-0.01em', margin: 0 }}>24/7</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '2px 0 4px 0' }}>{t('fCard3Title')}</div>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5 }}>
+                    {t('fCard3Desc')}
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" style={{ padding: '100px 0' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 60 }}>
-            <span className="section-tag">FAQ</span>
-            <h2 className="section-title">Frequently Asked <span className="text-accent">Questions</span></h2>
-          </div>
-          <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {faqs.map((faq, i) => (
-              <div key={i} className="faq-item reveal" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', overflow: 'hidden', transition: 'var(--transition)', transitionDelay: `${i * 0.05}s` }}>
-                <button className="faq-q" style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', background: 'none', border: 'none', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer', textAlign: 'left' }}>
-                  <span>{faq.q}</span>
-                  <span className="faq-toggle" style={{ fontSize: '1.4rem', fontWeight: 300, color: 'var(--accent)', transition: 'transform 0.3s ease', flexShrink: 0 }}>+</span>
-                </button>
-                <div className="faq-a"><p style={{ padding: '0 24px 20px', color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.7 }}>{faq.a}</p></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer style={{ padding: '60px 0 30px', borderTop: '1px solid var(--border-subtle)' }}>
-        <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 40 }}>
-            <div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 12 }}>BMK<span className="text-accent">Spoofer</span></div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.6, maxWidth: 300 }}>Bypass and Refake any banned or disabled devices in any services.</p>
             </div>
-            {[
-              { title: 'Product', links: [['Features', '#features'], ['Dashboard', '/dashboard'], ['Bypass', '#bypass'], ['Pricing', '#pricing']] },
-              { title: 'Support', links: [['Discord', '#'], ['Docs', '#'], ['FAQ', '#faq'], ['Contact', '#']] },
-              { title: 'Legal', links: [['Terms', '#'], ['Privacy', '#'], ['Refund', '#']] },
-            ].map((col, i) => (
-              <div key={i}>
-                <h4 style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', marginBottom: 16 }}>{col.title}</h4>
-                {col.links.map(([label, href]) => <Link key={label} href={href} style={{ display: 'block', color: 'var(--text-muted)', textDecoration: 'none', fontSize: '0.85rem', marginBottom: 10 }}>{label}</Link>)}
+          )}
+
+          {/* Slide 3: Pricelist */}
+          {activeTab === 'pricelist' && (
+            <div style={{ width: '100%', maxWidth: 1200, marginBottom: 80 }}>
+              <h2 style={{
+                fontSize: '2rem',
+                fontWeight: 800,
+                letterSpacing: '-0.02em',
+                color: '#0f172a',
+                margin: '0 0 10px 0',
+                background: 'linear-gradient(to right, #2563eb, #7c3aed)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textAlign: 'center'
+              }}>
+                {t('pTitle')}
+              </h2>
+              <p style={{
+                fontSize: '0.95rem',
+                color: '#64748b',
+                marginBottom: 48,
+                maxWidth: 600,
+                margin: '0 auto 48px auto',
+                textAlign: 'center'
+              }}>
+                {t('pSub')}
+              </p>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr',
+                gap: 24,
+                textAlign: 'left',
+                alignItems: 'stretch'
+              }}>
+                {/* Card 1: BERNADA SPOOFER */}
+                <div style={{
+                  background: '#ffffff',
+                  border: '1px solid rgba(37, 99, 235, 0.15)',
+                  borderRadius: 18,
+                  padding: '32px 24px',
+                  boxShadow: '0 10px 30px rgba(37, 99, 235, 0.03)',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: 460
+                }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+                      <div style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '50%',
+                        background: 'rgba(37, 99, 235, 0.08)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.2rem',
+                        color: '#2563eb'
+                      }}>
+                        ⚡
+                      </div>
+                      <span style={{
+                        background: 'rgba(34, 197, 94, 0.1)',
+                        color: '#22c55e',
+                        fontSize: '0.62rem',
+                        fontWeight: 800,
+                        padding: '4px 10px',
+                        borderRadius: 100,
+                        letterSpacing: '0.05em'
+                      }}>
+                        {t('pActive')}
+                      </span>
+                    </div>
+
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0' }}>BERNADA SPOOFER</h3>
+                    <div style={{ color: '#64748b', fontSize: '0.72rem', marginBottom: 16 }}>{t('pSpooferDesc')}</div>
+                    
+                    {/* Price Block */}
+                    <div style={{ margin: '16px 0 24px 0' }}>
+                      <div style={{ fontSize: '2rem', fontWeight: 900, color: '#2563eb', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                        {t('pFreeDesc').split(' ')[0]} {/* FREE */}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 4 }}>{t('pFreeDesc')}</div>
+                    </div>
+
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid #f1f5f9', paddingTop: 16 }}>
+                      <li style={{ fontSize: '0.75rem', color: '#475569', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> Support UGC, Mesh, Anim, Audio & Video
+                      </li>
+                      <li style={{ fontSize: '0.75rem', color: '#475569', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> Direct Auto-Upload to Roblox Cloud
+                      </li>
+                      <li style={{ fontSize: '0.75rem', color: '#475569', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> 99.6% Success Verification Rate
+                      </li>
+                      <li style={{ fontSize: '0.75rem', color: '#475569', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> Unlimited Bulk Processing
+                      </li>
+                    </ul>
+                  </div>
+
+                  <Link href={user ? "/dashboard" : "/api/auth/discord"} style={{
+                    width: '100%',
+                    background: '#2563eb',
+                    color: '#fff',
+                    textAlign: 'center',
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    marginTop: 24,
+                    boxShadow: '0 4px 12px rgba(37,99,235,0.2)',
+                    display: 'block'
+                  }} className="btn-hover-scale">
+                    {t('pLaunchSpoofer')}
+                  </Link>
+                </div>
+
+                {/* Card 2: BERNADA AUDIO */}
+                <div style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 18,
+                  padding: '32px 24px',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.02)',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: 460
+                }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+                      <div style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '50%',
+                        background: 'rgba(37, 99, 235, 0.08)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.2rem',
+                        color: '#2563eb'
+                      }}>
+                        🔊
+                      </div>
+                      <span style={{
+                        background: 'rgba(37, 99, 235, 0.1)',
+                        color: '#2563eb',
+                        fontSize: '0.62rem',
+                        fontWeight: 800,
+                        padding: '4px 10px',
+                        borderRadius: 100,
+                        letterSpacing: '0.05em'
+                      }}>
+                        {t('pActive')}
+                      </span>
+                    </div>
+
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0' }}>BERNADA AUDIO</h3>
+                    <div style={{ color: '#64748b', fontSize: '0.72rem', marginBottom: 16 }}>{t('pAudioDesc')}</div>
+                    
+                    {/* Dynamic Period Selector */}
+                    <div style={{ display: 'flex', background: '#f1f5f9', padding: 3, borderRadius: 8, marginBottom: 14 }}>
+                      <button 
+                        onClick={() => setAudioPeriod('30d')}
+                        style={{
+                          flex: 1,
+                          background: audioPeriod === '30d' ? '#fff' : 'transparent',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '4px 0',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          color: audioPeriod === '30d' ? '#2563eb' : '#64748b',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        {t('pPeriod30d')}
+                      </button>
+                      <button 
+                        onClick={() => setAudioPeriod('lifetime')}
+                        style={{
+                          flex: 1,
+                          background: audioPeriod === 'lifetime' ? '#fff' : 'transparent',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '4px 0',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          color: audioPeriod === 'lifetime' ? '#2563eb' : '#64748b',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        {t('pPeriodLifetime')}
+                      </button>
+                    </div>
+
+                    {/* Price Block */}
+                    <div style={{ margin: '0 0 16px 0', minHeight: 62 }}>
+                      {audioPeriod === '30d' ? (
+                        <div>
+                          <span style={{ fontSize: '0.72rem', color: '#94a3b8', textDecoration: 'line-through' }}>Rp 150.000</span>
+                          <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                            Rp 100.000<span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>/ {t('pPeriod30d')}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <span style={{ fontSize: '0.72rem', color: '#94a3b8', textDecoration: 'line-through' }}>Rp 500.000</span>
+                          <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                            Rp 400.000<span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>/ {t('pPeriodLifetime')}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, borderTop: '1px solid #f1f5f9', paddingTop: 16 }}>
+                      <li style={{ fontSize: '0.75rem', color: '#475569', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> Precision EQ & Haas Stereo Delay
+                      </li>
+                      <li style={{ fontSize: '0.75rem', color: '#475569', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> Multi-Speed Processing (0.5x - 4.0x)
+                      </li>
+                      <li style={{ fontSize: '0.75rem', color: '#475569', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> Automatic Long Track Slicing
+                      </li>
+                      <li style={{ fontSize: '0.75rem', color: '#475569', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#2563eb', fontWeight: 'bold' }}>✓</span> Cloud Auto-Upload to Roblox
+                      </li>
+                    </ul>
+                  </div>
+
+                  <Link href={user ? "/dashboard/audio" : "/api/auth/discord"} style={{
+                    width: '100%',
+                    background: '#2563eb',
+                    color: '#fff',
+                    textAlign: 'center',
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    marginTop: 24,
+                    boxShadow: '0 4px 12px rgba(37,99,235,0.2)',
+                    display: 'block'
+                  }} className="btn-hover-scale">
+                    {t('pLaunchAudio')}
+                  </Link>
+                </div>
+
+                {/* Card 3: BERNADA MIXER */}
+                <div style={{
+                  background: '#2563eb',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: 18,
+                  padding: '32px 24px',
+                  boxShadow: '0 20px 40px rgba(37, 99, 235, 0.15)',
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: 460,
+                  color: '#fff'
+                }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+                      <div style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '50%',
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.2rem',
+                        color: '#fff'
+                      }}>
+                        🎛️
+                      </div>
+                      <span style={{
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        color: '#fff',
+                        fontSize: '0.62rem',
+                        fontWeight: 800,
+                        padding: '4px 10px',
+                        borderRadius: 100,
+                        letterSpacing: '0.05em'
+                      }}>
+                        {t('pActive')}
+                      </span>
+                    </div>
+
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: '0 0 4px 0' }}>BERNADA MIXER</h3>
+                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.72rem', marginBottom: 16 }}>{t('pMixerDesc')}</div>
+                    
+                    {/* Dynamic Period Selector */}
+                    <div style={{ display: 'flex', background: 'rgba(255,255,255,0.15)', padding: 3, borderRadius: 8, marginBottom: 14 }}>
+                      <button 
+                        onClick={() => setMixingPeriod('7d')}
+                        style={{
+                          flex: 1,
+                          background: mixingPeriod === '7d' ? '#fff' : 'transparent',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '4px 0',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          color: mixingPeriod === '7d' ? '#2563eb' : '#fff',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        {t('pPeriod7d')}
+                      </button>
+                      <button 
+                        onClick={() => setMixingPeriod('30d')}
+                        style={{
+                          flex: 1,
+                          background: mixingPeriod === '30d' ? '#fff' : 'transparent',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '4px 0',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          color: mixingPeriod === '30d' ? '#2563eb' : '#fff',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        {t('pPeriod30d')}
+                      </button>
+                      <button 
+                        onClick={() => setMixingPeriod('lifetime')}
+                        style={{
+                          flex: 1,
+                          background: mixingPeriod === 'lifetime' ? '#fff' : 'transparent',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '4px 0',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          color: mixingPeriod === 'lifetime' ? '#2563eb' : '#fff',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        {t('pPeriodLifetime')}
+                      </button>
+                    </div>
+
+                    {/* Price Block */}
+                    <div style={{ margin: '0 0 16px 0', minHeight: 62 }}>
+                      {mixingPeriod === '7d' && (
+                        <div>
+                          <span style={{ fontSize: '0.72rem', color: 'transparent' }}>Placeholder</span>
+                          <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                            Rp 80.000<span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>/ {t('pPeriod7d')}</span>
+                          </div>
+                        </div>
+                      )}
+                      {mixingPeriod === '30d' && (
+                        <div>
+                          <span style={{ fontSize: '0.72rem', color: 'transparent' }}>Placeholder</span>
+                          <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                            Rp 150.000<span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>/ {t('pPeriod30d')}</span>
+                          </div>
+                        </div>
+                      )}
+                      {mixingPeriod === 'lifetime' && (
+                        <div>
+                          <span style={{ fontSize: '0.72rem', color: 'transparent' }}>Placeholder</span>
+                          <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                            Rp 500.000<span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>/ {t('pPeriodLifetime')}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 16 }}>
+                      <li style={{ fontSize: '0.75rem', color: '#fff', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#fff', fontWeight: 'bold' }}>✓</span> Web Audio API Stereo Routing & Faders
+                      </li>
+                      <li style={{ fontSize: '0.75rem', color: '#fff', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#fff', fontWeight: 'bold' }}>✓</span> Faster-than-Realtime Offline Render
+                      </li>
+                      <li style={{ fontSize: '0.75rem', color: '#fff', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#fff', fontWeight: 'bold' }}>✓</span> Pitch Locked Transitions & BPM Ramps
+                      </li>
+                      <li style={{ fontSize: '0.75rem', color: '#fff', display: 'flex', gap: 8 }}>
+                        <span style={{ color: '#fff', fontWeight: 'bold' }}>✓</span> Cloud Auto-Upload to Roblox Cloud
+                      </li>
+                    </ul>
+                  </div>
+
+                  <Link href={user ? "/dashboard/mixing" : "/api/auth/discord"} style={{
+                    width: '100%',
+                    background: '#ffffff',
+                    color: '#2563eb',
+                    textAlign: 'center',
+                    padding: '12px 0',
+                    borderRadius: 10,
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    marginTop: 24,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    display: 'block'
+                  }} className="btn-hover-scale">
+                    {t('pLaunchMixer')}
+                  </Link>
+                </div>
               </div>
-            ))}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 24, borderTop: '1px solid var(--border-subtle)' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>© 2026 BMK Spoofer. All rights reserved.</p>
-          </div>
+            </div>
+          )}
         </div>
-      </footer>
+
+        {/* Footer Section */}
+        <footer style={{
+          borderTop: '1px solid #cbd5e1',
+          background: '#f8fafc',
+          width: '100%',
+          padding: '12px 40px',
+          zIndex: 5,
+          marginTop: 'auto'
+        }}>
+          <div style={{
+            maxWidth: 1200,
+            width: '100%',
+            margin: '0 auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '0.75rem',
+            color: '#64748b',
+            flexWrap: 'wrap',
+            gap: 12
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: '#0f172a' }}>
+              <img src="/logo.jpg" alt="Logo" style={{ width: 20, height: 20, borderRadius: 4 }} />
+              <span>BERNADA<span style={{ color: '#2563eb' }}>STORE</span></span>
+              <span style={{ fontWeight: 400, color: '#94a3b8', marginLeft: 6 }}>|</span>
+              <span style={{ fontWeight: 400, color: '#64748b', marginLeft: 6 }}>© 2026 Bernada Creator Network. All rights reserved.</span>
+            </div>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+              <a href="https://discord.com/invite/h4hjNPtXqy" target="_blank" rel="noopener noreferrer" style={{ color: '#64748b', textDecoration: 'none', fontWeight: 600 }}>Discord Support</a>
+              <a href="#" style={{ color: '#64748b', textDecoration: 'none' }}>Terms</a>
+              <a href="#" style={{ color: '#64748b', textDecoration: 'none' }}>Privacy</a>
+            </div>
+          </div>
+        </footer>
+      </div>
+
+      {/* Styled JSX */}
+      <style jsx>{`
+        .btn-hover-scale {
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-hover-scale:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 30px rgba(37, 99, 235, 0.4) !important;
+          background: #1d4ed8 !important;
+        }
+        .btn-hover-white {
+          transition: all 0.2s ease;
+        }
+        .btn-hover-white:hover {
+          transform: translateY(-2px);
+          background: #f8fafc !important;
+          border-color: #94a3b8 !important;
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 }

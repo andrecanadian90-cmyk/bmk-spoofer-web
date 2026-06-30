@@ -1,12 +1,14 @@
 'use client';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useState, useEffect } from 'react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { language, setLanguage } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -14,47 +16,225 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const closeDropdown = () => setDropdownOpen(false);
+    window.addEventListener('click', closeDropdown);
+    return () => window.removeEventListener('click', closeDropdown);
+  }, [dropdownOpen]);
+
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-      padding: scrolled ? '10px 0' : '16px 0',
+      padding: scrolled ? '12px 0' : '20px 0',
       backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-      background: scrolled ? 'rgba(10,10,10,0.95)' : 'rgba(10,10,10,0.8)',
-      borderBottom: `1px solid ${scrolled ? 'rgba(57,255,20,0.12)' : 'rgba(255,255,255,0.06)'}`,
-      transition: 'all 0.3s ease',
+      background: scrolled ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.75)',
+      borderBottom: `1px solid ${scrolled ? 'rgba(37, 99, 235, 0.15)' : 'rgba(0, 0, 0, 0.05)'}`,
+      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
     }}>
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'var(--text-primary)' }}>
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="url(#lg)" strokeWidth="2" fill="none"/>
-            <path d="M14 8L20 11V17L14 20L8 17V11L14 8Z" fill="url(#lg)"/>
-            <defs><linearGradient id="lg" x1="2" y1="2" x2="26" y2="26"><stop stopColor="#39FF14"/><stop offset="1" stopColor="#00E5FF"/></linearGradient></defs>
-          </svg>
-          <span style={{ fontSize: '1.25rem', fontWeight: 800 }}>BMK<span style={{ color: 'var(--accent)' }}>Spoofer</span></span>
+      <div style={{ width: '100%', padding: '0 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', color: 'var(--text-primary)' }}>
+          <img 
+            src="/logo.jpg" 
+            alt="BND Logo" 
+            style={{ 
+              width: 32, 
+              height: 32, 
+              borderRadius: 6, 
+              objectFit: 'cover',
+              boxShadow: '0 0 10px rgba(37, 99, 235, 0.15)',
+              border: '1px solid rgba(37, 99, 235, 0.15)'
+            }} 
+          />
+          <span style={{ fontSize: '1.3rem', fontWeight: 900, letterSpacing: '-0.02em' }}>
+            BERNADA<span style={{ color: 'var(--accent)' }}>STORE</span>
+          </span>
         </Link>
-
+ 
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {/* Language Toggle Button */}
+          <button 
+            onClick={() => setLanguage(language === 'id' ? 'en' : 'id')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: scrolled ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.8)',
+              border: '1px solid rgba(0, 0, 0, 0.08)',
+              borderRadius: 100,
+              padding: '6px 12px',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              color: '#334155',
+              cursor: 'pointer',
+              outline: 'none',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+            }}
+            className="language-selector-trigger"
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <img 
+                src={language === 'id' ? 'https://flagcdn.com/w40/id.png' : 'https://flagcdn.com/w40/gb.png'} 
+                alt={language === 'id' ? 'ID Flag' : 'EN Flag'} 
+                style={{ width: 18, height: 12, objectFit: 'cover', borderRadius: 2, border: '1px solid rgba(0,0,0,0.1)' }} 
+              />
+              <span>{language === 'id' ? 'ID' : 'EN'}</span>
+            </div>
+          </button>
+
           {user ? (
-            <>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--warning)' }}>● {user.coins} COINS</span>
-              <Link href="/dashboard" className="btn btn-sm" style={{ padding: '6px 16px', fontSize: '0.8rem', background: 'var(--accent-dim)', color: 'var(--accent)', borderRadius: 8, textDecoration: 'none', fontWeight: 600 }}>Dashboard</Link>
-              {user.role === 'admin' && (
-                <Link href="/admin" className="btn btn-sm" style={{ padding: '6px 16px', fontSize: '0.8rem', background: 'rgba(191,90,242,0.15)', color: 'var(--purple)', borderRadius: 8, textDecoration: 'none', fontWeight: 600 }}>Admin</Link>
+            <div style={{ position: 'relative' }}>
+              <button 
+                onClick={(e) => { e.stopPropagation(); setDropdownOpen(!dropdownOpen); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '6px 12px',
+                  borderRadius: 12,
+                  outline: 'none',
+                  transition: 'background 0.2s'
+                }}
+                className="navbar-profile-trigger"
+              >
+                {user.discordAvatar ? (
+                  <img 
+                    src={user.discordAvatar} 
+                    alt="Discord Avatar" 
+                    style={{ 
+                      width: 28, 
+                      height: 28, 
+                      borderRadius: '50%', 
+                      border: '2px solid var(--accent)',
+                      boxShadow: '0 0 10px rgba(37, 99, 235, 0.15)'
+                    }} 
+                  />
+                ) : (
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--accent-dim)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
+                    {(user.discordUsername || user.username)?.[0]?.toUpperCase()}
+                  </div>
+                )}
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {user.discordUsername || user.username}
+                  <span style={{ fontSize: '0.55rem', color: '#64748b', transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+                </span>
+              </button>
+
+              {dropdownOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: '125%',
+                  right: 0,
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: 12,
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
+                  width: 180,
+                  padding: '6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  zIndex: 2000,
+                  animation: 'fadeIn 0.2s ease'
+                }}>
+                  <Link href="/dashboard" style={{
+                    padding: '8px 12px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: '#334155',
+                    textDecoration: 'none',
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }} className="dropdown-item">
+                    📊 Dashboard
+                  </Link>
+                  {user.role === 'admin' && (
+                    <Link href="/admin" style={{
+                      padding: '8px 12px',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      color: '#334155',
+                      textDecoration: 'none',
+                      borderRadius: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8
+                    }} className="dropdown-item">
+                      📈 Admin Panel
+                    </Link>
+                  )}
+                  <div style={{ borderTop: '1px solid #f1f5f9', margin: '4px 0' }} />
+                  <button 
+                    onClick={logout}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '8px 12px',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      color: '#ef4444',
+                      background: 'none',
+                      border: 'none',
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8
+                    }}
+                    className="dropdown-item logout"
+                  >
+                    🚪 Logout
+                  </button>
+                </div>
               )}
-              <button onClick={logout} style={{ padding: '6px 16px', fontSize: '0.8rem', background: 'none', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', borderRadius: 8, cursor: 'pointer', fontFamily: 'var(--font-sans)', fontWeight: 500 }}>Logout</button>
-            </>
+            </div>
           ) : (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 100, background: 'rgba(57,255,20,0.08)', border: '1px solid rgba(57,255,20,0.2)', fontSize: '0.7rem', fontWeight: 600, color: 'var(--accent)' }}>
-                <span style={{ width: 6, height: 6, background: 'var(--accent)', borderRadius: '50%', display: 'inline-block' }}></span>
-                STATUS: ONLINE
-              </div>
-              <Link href="/login" style={{ padding: '8px 20px', fontSize: '0.8rem', color: 'var(--text-secondary)', textDecoration: 'none', fontWeight: 500 }}>Login</Link>
-              <Link href="/register" className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '0.8rem' }}>Get Access</Link>
-            </>
+            <Link 
+              href="/login" 
+              className="btn btn-primary" 
+              style={{ 
+                padding: '8px 24px', 
+                fontSize: '0.82rem', 
+                background: 'var(--accent)', 
+                color: '#fff', 
+                borderRadius: 8, 
+                textDecoration: 'none', 
+                fontWeight: 700,
+                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.25)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Login
+            </Link>
           )}
         </div>
       </div>
+
+      <style jsx>{`
+        .dropdown-item {
+          transition: all 0.2s ease;
+        }
+        .dropdown-item:hover {
+          background: #f1f5f9;
+        }
+        .dropdown-item.logout:hover {
+          background: #fef2f2;
+        }
+        .navbar-profile-trigger:hover {
+          background: rgba(0, 0, 0, 0.03);
+        }
+        .language-selector-trigger:hover {
+          background: rgba(37, 99, 235, 0.08) !important;
+          border-color: rgba(37, 99, 235, 0.2) !important;
+          transform: translateY(-1px);
+        }
+      `}</style>
     </nav>
   );
 }

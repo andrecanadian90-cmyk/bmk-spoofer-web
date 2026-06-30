@@ -30,7 +30,7 @@ export async function PATCH(request) {
     requireAdmin(request);
     await connectDB();
 
-    const { userId, action } = await request.json();
+    const { userId, action, totalTopUp } = await request.json();
     if (!userId || !action) {
       return NextResponse.json({ success: false, error: 'userId and action are required' }, { status: 400 });
     }
@@ -38,6 +38,20 @@ export async function PATCH(request) {
     const update = {};
     if (action === 'ban') update.banned = true;
     else if (action === 'unban') update.banned = false;
+    else if (action === 'make_admin') update.role = 'admin';
+    else if (action === 'remove_admin') update.role = 'user';
+    else if (action === 'set_total_topup') {
+      const val = Number(totalTopUp);
+      if (val >= 1000) {
+        update.role = 'top_spender';
+        update.totalTopUp = 1000;
+        update.coins = 999999;
+      } else {
+        update.role = 'user';
+        update.totalTopUp = val;
+        update.coins = val;
+      }
+    }
     else return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 });
 
     const user = await User.findByIdAndUpdate(userId, update, { new: true }).select('-password');

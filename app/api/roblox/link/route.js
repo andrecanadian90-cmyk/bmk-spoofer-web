@@ -29,6 +29,7 @@ export async function POST(request) {
     const updateData = {
       robloxId,
       robloxUsername: robloxUser.name,
+      robloxDisplayName: robloxUser.displayName || robloxUser.name,
     };
 
     if (apiKey) {
