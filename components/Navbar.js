@@ -24,14 +24,34 @@ export default function Navbar() {
   }, [dropdownOpen]);
 
   return (
-    <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-      padding: scrolled ? '12px 0' : '20px 0',
-      backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-      background: scrolled ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.75)',
-      borderBottom: `1px solid ${scrolled ? 'rgba(37, 99, 235, 0.15)' : 'rgba(0, 0, 0, 0.05)'}`,
-      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-    }}>
+    <>
+      {/* Fixed Announcement Marquee Banner */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1001,
+        height: 26, background: 'linear-gradient(90deg, #1e3a8a 0%, #2563eb 50%, #1e3a8a 100%)',
+        color: '#ffffff', display: 'flex', alignItems: 'center', overflow: 'hidden',
+        fontSize: '0.72rem', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.1)'
+      }}>
+        <div style={{
+          whiteSpace: 'nowrap', display: 'inline-block',
+          animation: 'marquee 30s linear infinite', paddingLeft: '100%'
+        }}>
+          {language === 'id' ? (
+            '🎉 Selamat datang di BERNADA STORE! • ⚡ Spoofer, Konverter Audio, dan Mixing Console kini telah aktif sepenuhnya • 💎 Dapatkan koin sekarang dan nikmati kecepatan bypass instan tanpa antrean!'
+          ) : (
+            '🎉 Welcome to BERNADA STORE! • ⚡ Spoofer, Audio Converter, and Mixing Console are now fully active • 💎 Get coins now and enjoy instant bypass processing with zero queue!'
+          )}
+        </div>
+      </div>
+
+      <nav style={{
+        position: 'fixed', top: 26, left: 0, right: 0, zIndex: 1000,
+        padding: scrolled ? '10px 0' : '16px 0',
+        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+        background: scrolled ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.75)',
+        borderBottom: `1px solid ${scrolled ? 'rgba(37, 99, 235, 0.15)' : 'rgba(0, 0, 0, 0.05)'}`,
+        transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+      }}>
       <div style={{ width: '100%', padding: '0 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', color: 'var(--text-primary)' }}>
           <img 
@@ -217,6 +237,10 @@ export default function Navbar() {
       </div>
 
       <style jsx>{`
+        @keyframes marquee {
+          0% { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-100%, 0, 0); }
+        }
         .dropdown-item {
           transition: all 0.2s ease;
         }
@@ -236,5 +260,6 @@ export default function Navbar() {
         }
       `}</style>
     </nav>
+    </>
   );
 }
