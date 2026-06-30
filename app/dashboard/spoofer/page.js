@@ -189,14 +189,25 @@ export default function SpooferPage() {
   };
 
   const handleCopyCleanOutput = () => {
-    const sortedLogs = [...logs]
-      .filter(l => l.status === 'success')
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-
-    const outputLines = sortedLogs.map(getCleanLineText);
-    const outputText = outputLines.join('\n');
+    const lines = assetInput.split('\n');
+    const processedLines = lines.map(line => {
+      const cleanLine = line.trim();
+      const log = logs.find(l => l.originalLine === cleanLine || (l.originalAssetId && cleanLine.includes(l.originalAssetId)));
+      if (log) {
+        if (log.status === 'success') {
+          if (log.newAssetId) {
+            return line.replace(log.originalAssetId, log.newAssetId);
+          }
+          return line;
+        } else if (log.status === 'failed') {
+          return `${line} -- FAILED: ${log.error || 'Failed'}`;
+        }
+      }
+      return line;
+    });
+    const outputText = processedLines.join('\n');
     navigator.clipboard.writeText(outputText);
-    showToast(language === 'id' ? 'Seluruh output bersih berhasil disalin!' : 'Complete clean output copied!', 'success');
+    showToast(language === 'id' ? 'Seluruh output berhasil disalin ke clipboard!' : 'All output successfully copied to clipboard!', 'success');
   };
 
   const claimFreeCoin = async () => {
@@ -800,13 +811,13 @@ export default function SpooferPage() {
         </div>
 
         {/* Execution Logs */}
-        <div className="card">
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <h3 style={{ fontSize: '0.95rem', fontWeight: 700 }}>{currentT.execLogs}</h3>
-              <span className="badge badge-success">{logs.length}</span>
+              {logs.length > 0 && <span className="badge badge-success">{stats.successful}/{stats.total}</span>}
             </div>
-            {logs.some(l => l.status === 'success') && (
+            {logs.length > 0 && (
               <button 
                 onClick={handleCopyCleanOutput}
                 style={{
@@ -827,86 +838,72 @@ export default function SpooferPage() {
               </button>
             )}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 340, overflowY: 'auto' }}>
-            {logs.length === 0 ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>{currentT.noLogs}</div>
-            ) : logs.map((log, i) => (
-                <div key={log._id || i} className="log-entry" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px' }}>
-                  <span className="log-ts">{new Date(log.createdAt).toLocaleTimeString()}</span>
-                  <span className={`log-badge-s ${log.status}`}>{log.status.toUpperCase()}</span>
-                  <span className="log-msg" style={{ flex: 1, display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, fontFamily: 'var(--font-mono)', fontSize: '0.74rem', wordBreak: 'break-all' }}>
-                    {(() => {
-                      if (log.status !== 'success') {
-                        return <span style={{ color: 'var(--fail)' }} title={log.error}>{log.error || 'Failed'}</span>;
+          {logs.length === 0 ? (
+            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>{currentT.noLogs}</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}>
+              <textarea
+                className="textarea"
+                readOnly
+                value={(() => {
+                  const lines = assetInput.split('\n');
+                  const processedLines = lines.map(line => {
+                    const cleanLine = line.trim();
+                    const log = logs.find(l => l.originalLine === cleanLine || (l.originalAssetId && cleanLine.includes(l.originalAssetId)));
+                    if (log) {
+                      if (log.status === 'success') {
+                        if (log.newAssetId) {
+                          return line.replace(log.originalAssetId, log.newAssetId);
+                        }
+                        return line;
+                      } else if (log.status === 'failed') {
+                        return `${line} -- FAILED: ${log.error || 'Failed'}`;
                       }
-                      if (!log.newAssetId) {
-                        return (
-                          <span style={{ color: 'var(--success)', fontWeight: 700 }}>
-                            {lang === 'en' ? 'Bypassed (Download in Execution Logs)' : 'Ter-bypass (Unduh di Execution Logs)'}
-                          </span>
-                        );
-                      }
-                      if (log.originalLine && log.originalLine.includes(log.originalAssetId)) {
-                        const parts = log.originalLine.split(log.originalAssetId);
-                        return (
-                          <>
-                            {parts[0]}
-                            <a 
-                              href={`https://create.roblox.com/store/asset/${log.newAssetId}`} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 700 }}
-                            >
-                              {log.newAssetId}
-                            </a>
-                            {parts[1]}
-                          </>
-                        );
-                      }
-                      return (
-                        <>
-                          &quot;{log.assetName}&quot; →{' '}
-                          <a 
-                            href={`https://create.roblox.com/store/asset/${log.newAssetId}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 700 }}
-                          >
-                            {log.newAssetId}
-                          </a>
-                        </>
-                      );
-                    })()}
-                    {log.status === 'success' && ` (${formatSize(log.fileSize)})`}
+                    }
+                    return line;
+                  });
+                  return processedLines.join('\n');
+                })()}
+                style={{
+                  flex: 1,
+                  minHeight: 220,
+                  maxHeight: 280,
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.74rem',
+                  lineHeight: '1.4',
+                  background: 'rgba(0,0,0,0.2)',
+                  borderColor: 'var(--border-subtle)',
+                  color: '#fff',
+                  cursor: 'text'
+                }}
+              />
+              <div style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: 8, 
+                fontSize: '0.7rem', 
+                color: 'var(--text-secondary)',
+                borderTop: '1px solid var(--border-subtle)',
+                paddingTop: 10,
+                alignItems: 'center'
+              }}>
+                <span style={{ fontWeight: 600 }}>{lang === 'en' ? 'Info' : 'Info'}:</span>
+                <span className="badge badge-success" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
+                  {lang === 'en' ? 'Success' : 'Sukses'}: {stats.successful}
+                </span>
+                {stats.failed > 0 && (
+                  <span className="badge badge-error" style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' }}>
+                    {lang === 'en' ? 'Failed' : 'Gagal'}: {stats.failed}
                   </span>
-                  
-                  {log.status === 'success' && (
-                    <button
-                      onClick={() => handleCopySingleLine(log)}
-                      onMouseEnter={e => e.target.style.color = 'var(--accent)'}
-                      onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
-                      style={{
-                        marginLeft: 'auto',
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--text-muted)',
-                        cursor: 'pointer',
-                        padding: '4px',
-                        fontSize: '0.75rem',
-                        transition: 'color 0.2s',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        outline: 'none'
-                      }}
-                      title={lang === 'en' ? 'Copy Line' : 'Salin Baris'}
-                    >
-                      📋
-                    </button>
-                  )}
-                </div>
-            ))}
-          </div>
+                )}
+                {logs.length > 0 && (
+                  <span style={{ color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                    ⚡ {lang === 'en' ? 'Finished' : 'Selesai'}: {new Date(logs[0].createdAt).toLocaleTimeString()}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
