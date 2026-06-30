@@ -37,9 +37,9 @@ export default function Navbar() {
           animation: 'marquee 30s linear infinite', paddingLeft: '100%'
         }}>
           {language === 'id' ? (
-            '🎉 Selamat datang di BERNADA STORE! • ⚡ Spoofer, Konverter Audio, dan Mixing Console kini telah aktif sepenuhnya • 💎 Dapatkan koin sekarang dan nikmati kecepatan bypass instan tanpa antrean!'
+            '🎉 Spesial Rilis Perdana BERNADA STORE! Nikmati bonus koin gratis khusus hari ini — silakan buka tiket bantuan dan hubungi Admin sekarang juga untuk klaim koin Anda! 💎'
           ) : (
-            '🎉 Welcome to BERNADA STORE! • ⚡ Spoofer, Audio Converter, and Mixing Console are now fully active • 💎 Get coins now and enjoy instant bypass processing with zero queue!'
+            '🎉 BERNADA STORE Grand Opening Special! Enjoy your free coin bonus today — simply open a support ticket and contact Admin now to claim your coins! 💎'
           )}
         </div>
       </div>
