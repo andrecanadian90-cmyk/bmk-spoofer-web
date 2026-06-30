@@ -102,7 +102,7 @@ export default function AudioPage() {
               </a>
 
               <a 
-                href="https://discord.com/invite/h4hjNPtXqy"
+                href="https://discord.gg/x26ky9drYr"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -247,7 +247,7 @@ export default function AudioPage() {
                 Semua pembelian lisensi premium diproses secara aman melalui pembuatan tiket bantuan di Discord.
               </p>
               <a 
-                href="https://discord.com/invite/h4hjNPtXqy"
+                href="https://discord.gg/x26ky9drYr"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{

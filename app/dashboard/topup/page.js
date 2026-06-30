@@ -275,7 +275,7 @@ export default function TopUpPage() {
             </div>
 
             <a 
-              href="https://discord.com/invite/h4hjNPtXqy"
+              href="https://discord.gg/x26ky9drYr"
               target="_blank"
               rel="noopener noreferrer"
               style={{ 

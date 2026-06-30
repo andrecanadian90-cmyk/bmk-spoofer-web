@@ -1378,7 +1378,7 @@ export default function LandingPage() {
               <span style={{ fontWeight: 400, color: '#64748b', marginLeft: 6 }}>© 2026 Bernada Creator Network. All rights reserved.</span>
             </div>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-              <a href="https://discord.com/invite/h4hjNPtXqy" target="_blank" rel="noopener noreferrer" style={{ color: '#64748b', textDecoration: 'none', fontWeight: 600 }}>Discord Support</a>
+              <a href="https://discord.gg/x26ky9drYr" target="_blank" rel="noopener noreferrer" style={{ color: '#64748b', textDecoration: 'none', fontWeight: 600 }}>Discord Support</a>
               <a href="#" style={{ color: '#64748b', textDecoration: 'none' }}>Terms</a>
               <a href="#" style={{ color: '#64748b', textDecoration: 'none' }}>Privacy</a>
             </div>
