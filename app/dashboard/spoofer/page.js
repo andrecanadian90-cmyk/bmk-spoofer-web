@@ -172,9 +172,32 @@ export default function SpooferPage() {
     fetchLogs();
   }, []);
 
-  useEffect(() => {
-    return () => { if (timer) clearInterval(timer); };
-  }, [timer]);
+  const getCleanLineText = (log) => {
+    if (log.originalLine && log.originalLine.includes(log.originalAssetId)) {
+      if (log.newAssetId) {
+        return log.originalLine.replace(log.originalAssetId, log.newAssetId);
+      }
+      return log.originalLine;
+    }
+    return log.newAssetId || log.originalAssetId;
+  };
+
+  const handleCopySingleLine = (log) => {
+    const text = getCleanLineText(log);
+    navigator.clipboard.writeText(text);
+    showToast(language === 'id' ? 'Baris berhasil disalin!' : 'Line copied!', 'success');
+  };
+
+  const handleCopyCleanOutput = () => {
+    const sortedLogs = [...logs]
+      .filter(l => l.status === 'success')
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+    const outputLines = sortedLogs.map(getCleanLineText);
+    const outputText = outputLines.join('\n');
+    navigator.clipboard.writeText(outputText);
+    showToast(language === 'id' ? 'Seluruh output bersih berhasil disalin!' : 'Complete clean output copied!', 'success');
+  };
 
   const claimFreeCoin = async () => {
     setClaimingFree(true);
@@ -778,63 +801,110 @@ export default function SpooferPage() {
 
         {/* Execution Logs */}
         <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700 }}>{currentT.execLogs}</h3>
-            <span className="badge badge-success">{logs.length}</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 700 }}>{currentT.execLogs}</h3>
+              <span className="badge badge-success">{logs.length}</span>
+            </div>
+            {logs.some(l => l.status === 'success') && (
+              <button 
+                onClick={handleCopyCleanOutput}
+                style={{
+                  background: 'rgba(37, 99, 235, 0.1)',
+                  border: '1px solid rgba(37, 99, 235, 0.25)',
+                  borderRadius: 6,
+                  color: 'var(--accent)',
+                  padding: '4px 10px',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+              >
+                📋 {lang === 'en' ? 'Copy Output' : 'Salin Seluruh Output'}
+              </button>
+            )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 340, overflowY: 'auto' }}>
             {logs.length === 0 ? (
               <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>{currentT.noLogs}</div>
             ) : logs.map((log, i) => (
-               <div key={log._id || i} className="log-entry">
-                 <span className="log-ts">{new Date(log.createdAt).toLocaleTimeString()}</span>
-                 <span className={`log-badge-s ${log.status}`}>{log.status.toUpperCase()}</span>
-                 <span className="log-msg" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 'calc(100% - 160px)', fontFamily: 'var(--font-mono)', fontSize: '0.74rem' }}>
-                   {(() => {
-                     if (log.status !== 'success') {
-                       return <span style={{ color: 'var(--fail)' }} title={log.error}>{log.error || 'Failed'}</span>;
-                     }
-                     if (!log.newAssetId) {
-                       return (
-                         <span style={{ color: 'var(--success)', fontWeight: 700 }}>
-                           {lang === 'en' ? 'Bypassed (Download in Execution Logs)' : 'Ter-bypass (Unduh di Execution Logs)'}
-                         </span>
-                       );
-                     }
-                     if (log.originalLine && log.originalLine.includes(log.originalAssetId)) {
-                       const parts = log.originalLine.split(log.originalAssetId);
-                       return (
-                         <>
-                           {parts[0]}
-                           <a 
-                             href={`https://create.roblox.com/store/asset/${log.newAssetId}`} 
-                             target="_blank" 
-                             rel="noopener noreferrer"
-                             style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 700 }}
-                           >
-                             {log.newAssetId}
-                           </a>
-                           {parts[1]}
-                         </>
-                       );
-                     }
-                     return (
-                       <>
-                         &quot;{log.assetName}&quot; →{' '}
-                         <a 
-                           href={`https://create.roblox.com/store/asset/${log.newAssetId}`} 
-                           target="_blank" 
-                           rel="noopener noreferrer"
-                           style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 700 }}
-                         >
-                           {log.newAssetId}
-                         </a>
-                       </>
-                     );
-                   })()}
-                   {log.status === 'success' && ` (${formatSize(log.fileSize)})`}
-                 </span>
-               </div>
+                <div key={log._id || i} className="log-entry" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px' }}>
+                  <span className="log-ts">{new Date(log.createdAt).toLocaleTimeString()}</span>
+                  <span className={`log-badge-s ${log.status}`}>{log.status.toUpperCase()}</span>
+                  <span className="log-msg" style={{ flex: 1, display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, fontFamily: 'var(--font-mono)', fontSize: '0.74rem', wordBreak: 'break-all' }}>
+                    {(() => {
+                      if (log.status !== 'success') {
+                        return <span style={{ color: 'var(--fail)' }} title={log.error}>{log.error || 'Failed'}</span>;
+                      }
+                      if (!log.newAssetId) {
+                        return (
+                          <span style={{ color: 'var(--success)', fontWeight: 700 }}>
+                            {lang === 'en' ? 'Bypassed (Download in Execution Logs)' : 'Ter-bypass (Unduh di Execution Logs)'}
+                          </span>
+                        );
+                      }
+                      if (log.originalLine && log.originalLine.includes(log.originalAssetId)) {
+                        const parts = log.originalLine.split(log.originalAssetId);
+                        return (
+                          <>
+                            {parts[0]}
+                            <a 
+                              href={`https://create.roblox.com/store/asset/${log.newAssetId}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 700 }}
+                            >
+                              {log.newAssetId}
+                            </a>
+                            {parts[1]}
+                          </>
+                        );
+                      }
+                      return (
+                        <>
+                          &quot;{log.assetName}&quot; →{' '}
+                          <a 
+                            href={`https://create.roblox.com/store/asset/${log.newAssetId}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{ color: 'var(--accent)', textDecoration: 'underline', fontWeight: 700 }}
+                          >
+                            {log.newAssetId}
+                          </a>
+                        </>
+                      );
+                    })()}
+                    {log.status === 'success' && ` (${formatSize(log.fileSize)})`}
+                  </span>
+                  
+                  {log.status === 'success' && (
+                    <button
+                      onClick={() => handleCopySingleLine(log)}
+                      onMouseEnter={e => e.target.style.color = 'var(--accent)'}
+                      onMouseLeave={e => e.target.style.color = 'var(--text-muted)'}
+                      style={{
+                        marginLeft: 'auto',
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        fontSize: '0.75rem',
+                        transition: 'color 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        outline: 'none'
+                      }}
+                      title={lang === 'en' ? 'Copy Line' : 'Salin Baris'}
+                    >
+                      📋
+                    </button>
+                  )}
+                </div>
             ))}
           </div>
         </div>
