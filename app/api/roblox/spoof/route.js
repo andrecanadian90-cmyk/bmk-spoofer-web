@@ -93,7 +93,7 @@ export async function POST(request) {
       rankName = 'PREMIUM';
     }
 
-    if (assets.length > maxBatchSize) {
+    if (!isAdmin && !isTopSpender && assets.length > maxBatchSize) {
       return NextResponse.json({
         success: false,
         error: `Batas maksimal proses massal (bulk) untuk rank ${rankName} adalah ${maxBatchSize} aset per permintaan. (Jumlah input: ${assets.length} aset).`,
