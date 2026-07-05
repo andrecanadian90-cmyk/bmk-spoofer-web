@@ -1530,9 +1530,6 @@ export default function MixingPage() {
           <button className="btn btn-outline btn-sm" onClick={() => setShowHelp(true)}>
             ❓ {t('helpBtn')}
           </button>
-          <button className="btn btn-danger btn-sm" onClick={handleLogoutLicense}>
-            🚪 {t('logoutLicense')}
-          </button>
         </div>
       </div>
 
