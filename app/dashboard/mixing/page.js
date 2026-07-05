@@ -136,9 +136,7 @@ export default function MixingPage() {
   const [mounted, setMounted] = useState(false);
 
   // License State
-  const [licenseKey, setLicenseKey] = useState('');
   const [licenseInfo, setLicenseInfo] = useState(null);
-  const [activating, setActivating] = useState(false);
 
   // Mixer State
   const [tracks, setTracks] = useState([]);
@@ -221,33 +219,6 @@ export default function MixingPage() {
     };
   }, []);
 
-  // KeyAuth activation handler
-  const handleActivateLicense = async (e) => {
-    if (e) e.preventDefault();
-    if (!licenseKey.trim()) return;
-
-    setActivating(true);
-    try {
-      const res = await fetch('/api/auth/keyauth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ action: 'login', key: licenseKey.trim() })
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error);
-
-      setLicenseInfo(data.info);
-      localStorage.setItem('bmk_mixing_license', JSON.stringify(data.info));
-      showToast(t('licenseActive'), 'success');
-    } catch (err) {
-      showToast(err.message || t('invalidKey'), 'error');
-    } finally {
-      setActivating(false);
-    }
-  };
 
   const handleLogoutLicense = () => {
     localStorage.removeItem('bmk_mixing_license');
@@ -1329,10 +1300,10 @@ export default function MixingPage() {
     };
 
     return (
-      <div style={{ maxWidth: 480, margin: '40px auto', padding: 12 }}>
-        <div className="card" style={{ padding: 32, textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ maxWidth: 480, margin: '60px auto', padding: 12 }}>
+        <div className="card" style={{ padding: 36, textAlign: 'center', boxShadow: '0 15px 40px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div>
-            <span style={{ fontSize: '3rem', display: 'block', marginBottom: 12 }}>🎛️</span>
+            <span style={{ fontSize: '3.5rem', display: 'block', marginBottom: 12 }}>🎛️</span>
             <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-primary)', marginBottom: 6, letterSpacing: '0.5px' }}>BERNADA MIXING CONSOLE</h2>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
               {language === 'id' 
@@ -1343,62 +1314,43 @@ export default function MixingPage() {
 
           <hr style={{ border: 0, borderTop: '1px solid var(--border-subtle)', margin: 0 }} />
 
-          {/* Option 1: Official Key Verification */}
+          {/* Option 1: Official Purchase VIP Discord Ticket */}
           <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent)' }}>🔑 VERIFIKASI LISENSI VIP</span>
-              <a 
-                href="https://discord.gg/x26ky9drYr" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="badge badge-info" 
-                style={{ fontSize: '0.58rem', textDecoration: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-              >
-                ✉️ Buka Tiket
-              </a>
-            </div>
-            
-            <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent)' }}>👑 BELI LISENSI VIP</span>
+            <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
               {language === 'id'
-                ? 'Masukkan lisensi verifikasi KeyAuth Anda di bawah. Jika belum memilikinya, silakan beli lisensi via Open Ticket di server Discord kami.'
-                : 'Enter your KeyAuth verification key below. If you do not have one, purchase via Open Ticket on our Discord support server.'}
+                ? 'Buka akses tanpa batas waktu ke seluruh fitur eksklusif Bernada Mixing Console. Hubungi kami langsung melalui Open Ticket di server Discord kami untuk melakukan pembelian lisensi.'
+                : 'Unlock permanent lifetime access to all exclusive Bernada Mixing Console features. Contact us directly via Open Ticket on our Discord server to purchase a license.'}
             </p>
-
-            <form onSubmit={handleActivateLicense} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <input
-                type="text"
-                className="input input-mono"
-                placeholder="BND-XXXX-XXXX-XXXX-XXXX"
-                value={licenseKey}
-                onChange={(e) => setLicenseKey(e.target.value)}
-                style={{ textAlign: 'center', fontWeight: 700, fontSize: '0.8rem', padding: '10px' }}
-                disabled={activating}
-              />
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', height: 38, fontSize: '0.75rem', fontWeight: 800 }} disabled={activating}>
-                {activating ? t('activating') : t('activateBtn')}
-              </button>
-            </form>
+            <a 
+              href="https://discord.gg/x26ky9drYr" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn btn-primary" 
+              style={{ width: '100%', height: 42, fontSize: '0.78rem', fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            >
+              ✉️ Beli Lisensi via Open Ticket
+            </a>
           </div>
 
           <hr style={{ border: 0, borderTop: '1px solid var(--border-subtle)', margin: 0 }} />
 
-          {/* Option 2: Free Trial Promotion */}
+          {/* Option 2: Free Trial 1 Day */}
           <div style={{ textAlign: 'left', padding: '16px', background: 'rgba(16,185,129,0.06)', borderRadius: 8, border: '1px solid rgba(16,185,129,0.15)', display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--success)' }}>⚡ COBA GRATIS (FREE TRIAL)</span>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--success)' }}>⚡ UJI COBA GRATIS (FREE TRIAL)</span>
               <span className="badge badge-success" style={{ fontSize: '0.52rem', fontWeight: 900 }}>24 JAM</span>
             </div>
             <p style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
               {language === 'id'
-                ? 'Dapatkan akses uji coba penuh 1 hari secara instan ke seluruh fitur premium audio mixing Bernada. Tidak membutuhkan kartu kredit.'
-                : 'Get instant 24-hour full access trial to all premium Bernada audio mixing features. No credit card required.'}
+                ? 'Dapatkan akses uji coba penuh 1 hari secara instan ke seluruh fitur premium audio mixing Bernada secara gratis.'
+                : 'Get instant 24-hour full access trial to all premium Bernada audio mixing features for free.'}
             </p>
             <button 
               type="button" 
               className="btn btn-success" 
               style={{ width: '100%', height: 38, fontSize: '0.75rem', fontWeight: 800, color: '#fff', marginTop: 4 }}
               onClick={handleStartTrial}
-              disabled={activating}
             >
               🚀 Aktifkan Free Trial 1 Hari
             </button>
