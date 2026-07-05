@@ -733,12 +733,12 @@ export default function MixingPage() {
     setAutomixStep(0);
 
     const runSteps = async () => {
-      // Simulate DSP solver stages with 2500ms delay for clear visual feedback
-      for (let step = 1; step <= 5; step++) {
-        await new Promise(r => setTimeout(r, 2500));
+      // Simulate 10 detailed DSP solver stages with 1500ms delay for clear visual feedback
+      for (let step = 1; step <= 10; step++) {
+        await new Promise(r => setTimeout(r, 1500));
         setAutomixStep(step);
       }
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 800));
 
       // Global Path Optimization Sort: Try every song as the starting song and pick the smoothest chain
       const originalList = [...playlist];
@@ -1714,22 +1714,32 @@ export default function MixingPage() {
             
             {/* Dynamic Status Subtitle */}
             <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: 20, minHeight: 18, fontWeight: 600 }}>
-              {automixStep === 0 && (language === 'id' ? 'Menganalisis spektrum & keheningan audio...' : 'Scanning audio spectrum & silence...')}
-              {automixStep === 1 && (language === 'id' ? 'Menghitung jalur harmoni optimal...' : 'Solving optimal harmonic path...')}
-              {automixStep === 2 && (language === 'id' ? 'Menyelaraskan pitch & kunci nada...' : 'Syncing pitch & Camelot keys...')}
-              {automixStep === 3 && (language === 'id' ? 'Memotong ketukan birama (160 Beats)...' : 'Trimming beat phrasing (160 Beats)...')}
-              {automixStep === 4 && (language === 'id' ? 'Menghubungkan transisi & ramping tempo...' : 'Aligning transitions & BPM ramping...')}
-              {automixStep === 5 && (language === 'id' ? 'Menyelesaikan mixer DSP...' : 'Finalizing DSP mixer...')}
+              {automixStep === 0 && (language === 'id' ? 'Memulai mesin mixer DSP...' : 'Starting DSP mixer engine...')}
+              {automixStep === 1 && (language === 'id' ? 'Memindai batas keheningan lagu...' : 'Scanning leading & trailing silence...')}
+              {automixStep === 2 && (language === 'id' ? 'Menyamakan tingkat volume (Auto-Gain)...' : 'Normalizing track volume levels...')}
+              {automixStep === 3 && (language === 'id' ? 'Menganalisis spektrum energi RMS...' : 'Profiling track RMS sound energy...')}
+              {automixStep === 4 && (language === 'id' ? 'Mencari jalur harmoni Camelot...' : 'Solving optimal Camelot wheel path...')}
+              {automixStep === 5 && (language === 'id' ? 'Penyelarasan pitch kunci (Key Sync)...' : 'Pitch transposing keys (Key Sync)...')}
+              {automixStep === 6 && (language === 'id' ? 'Mendeteksi letak klimaks Drop/Reff...' : 'Locating climax & chorus segments...')}
+              {automixStep === 7 && (language === 'id' ? 'Menyelaraskan ketukan ke Bar terdekat...' : 'Aligning beats to nearest 16-beat bars...')}
+              {automixStep === 8 && (language === 'id' ? 'Mengunci tempo & sinkronisasi BPM...' : 'Locking tempo & dynamic BPM ramping...')}
+              {automixStep === 9 && (language === 'id' ? 'Mengaktifkan master tempo pitch lock...' : 'Compensating pitch (Key Lock)...')}
+              {automixStep === 10 && (language === 'id' ? 'Menghubungkan fader EQ & mastering limiter...' : 'Finalizing EQ faders & limiter mastering...')}
             </p>
 
             {/* Checklist of DSP Stages */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left', margin: '0 0 20px', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left', margin: '0 0 20px', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
               {[
-                { id: 1, label: language === 'id' ? 'Analisis Sinyal & Keheningan' : 'Signal Analysis & Silence Detection', icon: '🔍' },
-                { id: 2, label: language === 'id' ? 'Optimasi Jalur Camelot Wheel' : 'Global Camelot Path Optimization', icon: '🎼' },
-                { id: 3, label: language === 'id' ? 'Penyelarasan Kunci (Key Sync)' : 'Harmonic Key Sync (Detune)', icon: '⚙️' },
-                { id: 4, label: language === 'id' ? 'Phrasing & Penyelarasan Bar' : '16-Beat Phrase & Bar Alignment', icon: '✂️' },
-                { id: 5, label: language === 'id' ? 'Ramping Tempo & Crossfade EQ' : 'BPM Ramping & EQ Crossover', icon: '🎚️' }
+                { id: 1, label: language === 'id' ? 'Silence & Noise Gate Scanning' : 'Silence & Noise Gate Scanning', icon: '🔍' },
+                { id: 2, label: language === 'id' ? 'Auto-Gain Loudness Normalization' : 'Auto-Gain Loudness Normalization', icon: '🎚️' },
+                { id: 3, label: language === 'id' ? 'RMS Sound Energy Profiling' : 'RMS Sound Energy Profiling', icon: '📊' },
+                { id: 4, label: language === 'id' ? 'Global Camelot Path Optimization' : 'Global Camelot Path Optimization', icon: '🎼' },
+                { id: 5, label: language === 'id' ? 'Harmonic Key Sync (Detune)' : 'Harmonic Key Sync (Detune)', icon: '⚙️' },
+                { id: 6, label: language === 'id' ? 'Climax & Energy Trimming' : 'Climax & Energy Trimming', icon: '✂️' },
+                { id: 7, label: language === 'id' ? '16-Beat Phrase & Bar Alignment' : '16-Beat Phrase & Bar Alignment', icon: '📐' },
+                { id: 8, label: language === 'id' ? 'BPM Ramping & Tempo Match' : 'BPM Ramping & Tempo Match', icon: '📈' },
+                { id: 9, label: language === 'id' ? 'Master Tempo Key Lock (Pitch Lock)' : 'Master Tempo Key Lock (Pitch Lock)', icon: '🛡️' },
+                { id: 10, label: language === 'id' ? 'EQ Crossover & Limiter Mastering' : 'EQ Crossover & Limiter Mastering', icon: '🎛️' }
               ].map((step) => {
                 const isCompleted = automixStep >= step.id;
                 const isCurrent = automixStep === step.id - 1;
@@ -1740,7 +1750,7 @@ export default function MixingPage() {
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'space-between',
-                      fontSize: '0.72rem',
+                      fontSize: '0.68rem',
                       color: isCompleted ? 'var(--text-primary)' : isCurrent ? 'var(--accent)' : 'var(--text-muted)',
                       fontWeight: isCurrent || isCompleted ? 700 : 400,
                       opacity: isCompleted || isCurrent ? 1.0 : 0.4,
@@ -1751,7 +1761,7 @@ export default function MixingPage() {
                       <span>{step.icon}</span>
                       <span>{step.label}</span>
                     </div>
-                    <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
                       {isCompleted ? (
                         <span style={{ color: 'var(--success)' }}>✅</span>
                       ) : isCurrent ? (
@@ -1766,7 +1776,7 @@ export default function MixingPage() {
             </div>
 
             <div className="progress-wrap" style={{ height: 6 }}>
-              <div className="progress-fill" style={{ width: `${(automixStep / 5) * 100}%` }} />
+              <div className="progress-fill" style={{ width: `${(automixStep / 10) * 100}%` }} />
             </div>
           </div>
         </div>
