@@ -9,7 +9,7 @@ export const metadata = {
   description: 'Kami sedang melakukan peningkatan sistem. Kami akan segera kembali online.',
 };
 
-const MAINTENANCE_MODE = true; // Set to false to end maintenance mode
+const MAINTENANCE_MODE = process.env.NODE_ENV !== 'development'; // Auto-bypass on local dev
 
 export default function RootLayout({ children }) {
   if (MAINTENANCE_MODE) {
