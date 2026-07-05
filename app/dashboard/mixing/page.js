@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/Toast';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -149,6 +149,7 @@ export default function MixingPage() {
   const [deckRightFader, setDeckRightFader] = useState(1.0);
   const [transitionStyle, setTransitionStyle] = useState('smooth');
   const [autoCutMode, setAutoCutMode] = useState('high');
+  const [editingTrackId, setEditingTrackId] = useState(null);
   const [playbackTime, setPlaybackTime] = useState(0);
   const [viewMode, setViewMode] = useState('timeline'); // 'timeline' or 'table'
   const [exportFormat, setExportFormat] = useState('mp3');
@@ -519,7 +520,45 @@ export default function MixingPage() {
       updated.push(clonedTrack);
     });
     
-    setPlaylist(updated);
+  };
+
+  const handleManualCutChange = (index, newStart, newEnd) => {
+    setPlaylist(prev => {
+      const next = [...prev];
+      const track = next[index];
+      const duration = track.duration || (track.buffer ? track.buffer.duration : 0);
+      
+      const start = Math.max(0, Math.min(duration - 5, newStart));
+      const end = Math.max(start + 5, Math.min(duration, newEnd));
+
+      next[index] = {
+        ...track,
+        clipStart: parseFloat(start.toFixed(2)),
+        clipEnd: parseFloat(end.toFixed(2)),
+        manualCut: true
+      };
+      
+      setTimeout(() => recalculateTimeline(next), 10);
+      return next;
+    });
+  };
+
+  const handleResetManualCut = (index) => {
+    setPlaylist(prev => {
+      const next = [...prev];
+      const track = next[index];
+      const duration = track.duration || (track.buffer ? track.buffer.duration : 0);
+
+      next[index] = {
+        ...track,
+        clipStart: 0,
+        clipEnd: duration,
+        manualCut: false
+      };
+      
+      setTimeout(() => recalculateTimeline(next), 10);
+      return next;
+    });
   };
 
   // Camelot compatibility sorting algorithm
@@ -545,6 +584,10 @@ export default function MixingPage() {
 
   const performAutoCut = (list) => {
     return list.map((track, idx) => {
+      if (track.manualCut) {
+        console.log(`[AutoCut Bypass] ${track.name}: Using manual crop [${track.clipStart}s - ${track.clipEnd}s]`);
+        return track;
+      }
       const buffer = track.buffer;
       const duration = track.duration || (buffer ? buffer.duration : 0);
       let silenceStart = 0;
@@ -1556,34 +1599,108 @@ export default function MixingPage() {
                   const color = CAMELOT_COLORS[track.key] || 'var(--text-primary)';
                   const isCompatible = idx === 0 || getCamelotCompatibilityScore(playlist[idx - 1].key, track.key) > 0;
                   return (
-                    <tr key={track.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ fontSize: '0.72rem', padding: '10px 10px' }}>{idx + 1}</td>
-                      <td style={{ fontSize: '0.72rem', padding: '10px 10px', fontWeight: 700, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {track.name}
-                      </td>
-                      <td style={{ fontSize: '0.72rem', padding: '10px 10px' }}>{track.bpm}</td>
-                      <td style={{ fontSize: '0.72rem', padding: '10px 10px', color: color, fontWeight: 800 }}>
-                        <div>{track.key} {idx > 0 && (isCompatible ? '✅' : '⚠️')}</div>
-                        {track.detune !== 0 && track.detune !== undefined && (
-                          <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 400, marginTop: 2 }}>
-                            ({track.detune > 0 ? '+' : ''}{track.detune / 100} Semitone Sync)
-                          </div>
-                        )}
-                      </td>
-                      <td style={{ fontSize: '0.72rem', padding: '10px 10px' }}>
-                        <div style={{ fontWeight: 700 }}>{formatTime(track.clipEnd - track.clipStart)}</div>
-                        {track.clipEnd - track.clipStart < track.duration && (
-                          <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
-                            Original: {formatTime(track.duration)} (-{(track.duration - (track.clipEnd - track.clipStart)).toFixed(0)}s)
-                          </div>
-                        )}
-                      </td>
-                      <td style={{ fontSize: '0.72rem', padding: '10px 10px', textAlign: 'right' }}>
-                        <button className="btn btn-danger btn-sm" style={{ padding: '2px 6px', fontSize: '0.6rem' }} onClick={() => removeFromPlaylist(idx)}>
-                          ✕
-                        </button>
-                      </td>
-                    </tr>
+                    <Fragment key={track.id}>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ fontSize: '0.72rem', padding: '10px 10px' }}>{idx + 1}</td>
+                        <td style={{ fontSize: '0.72rem', padding: '10px 10px', fontWeight: 700, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {track.name}
+                          {track.manualCut && (
+                            <span style={{ display: 'block', fontSize: '0.58rem', color: 'var(--success)', fontWeight: 800, marginTop: 2 }}>
+                              ✏️ Manual Cut
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ fontSize: '0.72rem', padding: '10px 10px' }}>{track.bpm}</td>
+                        <td style={{ fontSize: '0.72rem', padding: '10px 10px', color: color, fontWeight: 800 }}>
+                          <div>{track.key} {idx > 0 && (isCompatible ? '✅' : '⚠️')}</div>
+                          {track.detune !== 0 && track.detune !== undefined && (
+                            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 400, marginTop: 2 }}>
+                              ({track.detune > 0 ? '+' : ''}{track.detune / 100} Semitone Sync)
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ fontSize: '0.72rem', padding: '10px 10px' }}>
+                          <div style={{ fontWeight: 700 }}>{formatTime(track.clipEnd - track.clipStart)}</div>
+                          {track.clipEnd - track.clipStart < track.duration && (
+                            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
+                              Original: {formatTime(track.duration)} (-{(track.duration - (track.clipEnd - track.clipStart)).toFixed(0)}s)
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ fontSize: '0.72rem', padding: '10px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <button 
+                            className="btn btn-outline btn-sm" 
+                            style={{ padding: '2px 6px', fontSize: '0.6rem', marginRight: 4, borderColor: editingTrackId === track.id ? 'var(--accent)' : 'var(--border)' }} 
+                            onClick={() => setEditingTrackId(editingTrackId === track.id ? null : track.id)}
+                          >
+                            ✂️ {editingTrackId === track.id ? 'Close' : 'Cut'}
+                          </button>
+                          <button className="btn btn-danger btn-sm" style={{ padding: '2px 6px', fontSize: '0.6rem' }} onClick={() => removeFromPlaylist(idx)}>
+                            ✕
+                          </button>
+                        </td>
+                      </tr>
+                      {editingTrackId === track.id && (
+                        <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                          <td colSpan="6" style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--accent)', display: 'flex', justifyContent: 'space-between' }}>
+                                <span>MANUAL AUDIO CUT & CROP</span>
+                                {track.manualCut && (
+                                  <span style={{ color: 'var(--success)' }}>✏️ MANUAL MODE ACTIVE (AUTOMIX WILL PRESERVE THIS)</span>
+                                )}
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                  <label style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                                    START CROP (Seconds)
+                                  </label>
+                                  <input 
+                                    type="number" 
+                                    className="input"
+                                    style={{ padding: '4px 8px', fontSize: '0.7rem', height: 'auto', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                                    min="0" 
+                                    max={Math.max(0, track.clipEnd - 5)} 
+                                    value={track.clipStart} 
+                                    onChange={(e) => handleManualCutChange(idx, parseFloat(e.target.value) || 0, track.clipEnd)}
+                                  />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                  <label style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                                    END CROP (Seconds)
+                                  </label>
+                                  <input 
+                                    type="number" 
+                                    className="input"
+                                    style={{ padding: '4px 8px', fontSize: '0.7rem', height: 'auto', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                                    min={track.clipStart + 5} 
+                                    max={track.duration} 
+                                    value={track.clipEnd} 
+                                    onChange={(e) => handleManualCutChange(idx, track.clipStart, parseFloat(e.target.value) || track.duration)}
+                                  />
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
+                                <button 
+                                  className="btn btn-outline btn-sm" 
+                                  style={{ padding: '4px 10px', fontSize: '0.62rem' }}
+                                  onClick={() => handleResetManualCut(idx)}
+                                >
+                                  Reset to Full Length
+                                </button>
+                                <button 
+                                  className="btn btn-primary btn-sm" 
+                                  style={{ padding: '4px 10px', fontSize: '0.62rem' }}
+                                  onClick={() => setEditingTrackId(null)}
+                                >
+                                  Done
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>
