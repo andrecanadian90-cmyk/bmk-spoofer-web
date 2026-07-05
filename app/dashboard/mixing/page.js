@@ -194,8 +194,6 @@ export default function MixingPage() {
     };
   }, []);
 
-  if (!mounted) return null;
-
   // KeyAuth activation handler
   const handleActivateLicense = async (e) => {
     if (e) e.preventDefault();
@@ -836,6 +834,8 @@ export default function MixingPage() {
   };
 
   // --- RENDERING VIEWS ---
+
+  if (!mounted) return null;
 
   if (!licenseInfo) {
     return (
