@@ -1290,7 +1290,7 @@ export default function LandingPage() {
                         <div>
                           <span style={{ fontSize: '0.72rem', color: 'transparent' }}>Placeholder</span>
                           <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff', display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                            Rp 80.000<span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>/ {t('pPeriod7d')}</span>
+                            Rp 50.000<span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>/ {t('pPeriod7d')}</span>
                           </div>
                         </div>
                       )}
@@ -1304,9 +1304,9 @@ export default function LandingPage() {
                       )}
                       {mixingPeriod === 'lifetime' && (
                         <div>
-                          <span style={{ fontSize: '0.72rem', color: 'transparent' }}>Placeholder</span>
+                          <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', textDecoration: 'line-through' }}>Rp 500.000</span>
                           <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff', display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                            Rp 500.000<span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>/ {t('pPeriodLifetime')}</span>
+                            Rp 400.000<span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>/ {t('pPeriodLifetime')}</span>
                           </div>
                         </div>
                       )}
