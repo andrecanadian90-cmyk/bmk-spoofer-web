@@ -765,29 +765,48 @@ export default function MixingPage() {
 
   // Update Gain Realtime
   const calculateCrossfadeCurves = (progress, style) => {
+    const p = Math.max(0, Math.min(1, progress));
+    
+    // Dipped Equal-Power curve (dips 15% in the middle to prevent volume clipping & clashes)
+    const dip = 1 - 0.15 * Math.sin(p * Math.PI);
+    const gainA = Math.cos(p * Math.PI / 2) * dip;
+    const gainB = Math.sin(p * Math.PI / 2) * dip;
+
     if (style === 'cut') {
       return {
-        gainA: progress < 0.5 ? 1.0 : 0.0,
-        gainB: progress >= 0.5 ? 1.0 : 0.0,
-        bassA: 0,
-        bassB: 0
+        gainA: p < 0.5 ? 1.0 : 0.0,
+        gainB: p >= 0.5 ? 1.0 : 0.0,
+        bassA: p < 0.5 ? 0 : -24,
+        bassB: p >= 0.5 ? 0 : -24
       };
     }
+
     if (style === 'bass') {
-      return {
-        gainA: Math.cos(progress * Math.PI / 2),
-        gainB: Math.sin(progress * Math.PI / 2),
-        bassA: progress < 0.5 ? 0 : -24,
-        bassB: progress >= 0.5 ? 0 : -24
-      };
+      // Bass Swap Heavy: gradual crossover between 40% and 60% progress to prevent harsh popping
+      let bassA = 0;
+      let bassB = -24;
+
+      if (p < 0.4) {
+        bassA = 0;
+        bassB = -24;
+      } else if (p > 0.6) {
+        bassA = -24;
+        bassB = 0;
+      } else {
+        // Linear sweep in the 20% center window
+        const factor = (p - 0.4) / 0.2;
+        bassA = -24 * factor;
+        bassB = -24 * (1 - factor);
+      }
+
+      return { gainA, gainB, bassA, bassB };
     }
-    // smooth
-    return {
-      gainA: Math.cos(progress * Math.PI / 2),
-      gainB: Math.sin(progress * Math.PI / 2),
-      bassA: 0,
-      bassB: 0
-    };
+
+    // smooth: Linear EQ bass crossfade (very smooth frequency transition)
+    const bassA = -24 * p;
+    const bassB = -24 * (1 - p);
+
+    return { gainA, gainB, bassA, bassB };
   };
 
   const updateGainNodesRealtime = () => {
