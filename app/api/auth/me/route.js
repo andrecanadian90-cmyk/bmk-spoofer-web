@@ -71,6 +71,7 @@ export async function GET(request) {
         totalTopUp: user.totalTopUp || 0,
         mixingExpiry: user.mixingExpiry,
         mixingIsPermanent: user.mixingIsPermanent || false,
+        mixingTrialClaimed: user.mixingTrialClaimed || false,
         createdAt: user.createdAt, 
         lastLogin: user.lastLogin,
       },

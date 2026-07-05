@@ -1339,17 +1339,24 @@ export default function MixingPage() {
   }
 
   if (!isUnlocked) {
-    const handleStartTrial = () => {
-      const trialData = {
-        demo: true,
-        username: 'TrialUser',
-        expiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        timeleft: '24 Hours',
-        trial: true
-      };
-      setLicenseInfo(trialData);
-      localStorage.setItem('bmk_mixing_license', JSON.stringify(trialData));
-      showToast(language === 'id' ? 'Free Trial 1 Hari Berhasil Diaktifkan!' : '1-Day Free Trial Activated successfully!', 'success');
+    const handleStartTrial = async () => {
+      try {
+        const res = await fetch('/api/auth/claim-trial', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+
+        // Update auth user profile and trigger unlocking
+        refreshUser();
+        showToast(language === 'id' ? 'Free Trial 1 Hari Berhasil Diaktifkan!' : '1-Day Free Trial Activated successfully!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
     };
 
     return (
@@ -1416,25 +1423,47 @@ export default function MixingPage() {
           <hr style={{ border: 0, borderTop: '1px solid var(--border-subtle)', margin: 0 }} />
 
           {/* Option 2: Free Trial 1 Day */}
-          <div style={{ textAlign: 'left', padding: '12px 16px', background: 'rgba(16,185,129,0.04)', borderRadius: 8, border: '1px solid rgba(16,185,129,0.15)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--success)' }}>⚡ UJI COBA GRATIS (FREE TRIAL)</span>
-              <span className="badge badge-success" style={{ fontSize: '0.5rem', fontWeight: 900 }}>24 JAM</span>
+          {user && user.mixingTrialClaimed ? (
+            <div style={{ textAlign: 'left', padding: '12px 16px', background: 'rgba(239,68,68,0.04)', borderRadius: 8, border: '1px solid rgba(239,68,68,0.15)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--error)' }}>⚡ UJI COBA GRATIS (FREE TRIAL)</span>
+                <span className="badge badge-error" style={{ fontSize: '0.5rem', fontWeight: 900 }}>TERPAKAI</span>
+              </div>
+              <p style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>
+                {language === 'id'
+                  ? 'Akun Anda sudah pernah mengklaim jatah uji coba gratis sebelumnya. Silakan beli lisensi VIP untuk membuka kembali akses.'
+                  : 'Your account has already claimed the free trial. Please purchase a VIP license to regain access.'}
+              </p>
+              <button 
+                type="button" 
+                className="btn btn-outline" 
+                style={{ width: '100%', height: 36, fontSize: '0.72rem', fontWeight: 800, marginTop: 2, cursor: 'not-allowed' }}
+                disabled
+              >
+                🔒 Trial Sudah Pernah Diklaim
+              </button>
             </div>
-            <p style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>
-              {language === 'id'
-                ? 'Dapatkan akses uji coba penuh 1 hari secara gratis ke seluruh fitur premium audio mixing Bernada.'
-                : 'Get instant 24-hour full access trial to all premium Bernada audio mixing features for free.'}
-            </p>
-            <button 
-              type="button" 
-              className="btn btn-success" 
-              style={{ width: '100%', height: 36, fontSize: '0.72rem', fontWeight: 800, color: '#fff', marginTop: 2 }}
-              onClick={handleStartTrial}
-            >
-              🚀 Aktifkan Free Trial 1 Hari
-            </button>
-          </div>
+          ) : (
+            <div style={{ textAlign: 'left', padding: '12px 16px', background: 'rgba(16,185,129,0.04)', borderRadius: 8, border: '1px solid rgba(16,185,129,0.15)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--success)' }}>⚡ UJI COBA GRATIS (FREE TRIAL)</span>
+                <span className="badge badge-success" style={{ fontSize: '0.5rem', fontWeight: 900 }}>24 JAM</span>
+              </div>
+              <p style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>
+                {language === 'id'
+                  ? 'Dapatkan akses uji coba penuh 1 hari secara gratis ke seluruh fitur premium audio mixing Bernada.'
+                  : 'Get instant 24-hour full access trial to all premium Bernada audio mixing features for free.'}
+              </p>
+              <button 
+                type="button" 
+                className="btn btn-success" 
+                style={{ width: '100%', height: 36, fontSize: '0.72rem', fontWeight: 800, color: '#fff', marginTop: 2 }}
+                onClick={handleStartTrial}
+              >
+                🚀 Aktifkan Free Trial 1 Hari
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
