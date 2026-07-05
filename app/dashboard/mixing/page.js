@@ -457,6 +457,92 @@ export default function MixingPage() {
     return 0;
   };
 
+  const performAutoCut = (list) => {
+    return list.map((track, idx) => {
+      const buffer = track.buffer;
+      if (!buffer) return track;
+
+      const duration = buffer.duration;
+      let silenceStart = 0;
+      let silenceEnd = duration;
+
+      try {
+        const data = buffer.getChannelData(0);
+        const sampleRate = buffer.sampleRate;
+        const checkLength = data.length;
+        const step = Math.floor(sampleRate * 0.1); // 100ms steps
+
+        // Scan leading silence
+        for (let i = 0; i < checkLength; i += step) {
+          let rms = 0;
+          const end = Math.min(checkLength, i + step);
+          for (let j = i; j < end; j++) {
+            rms += data[j] * data[j];
+          }
+          rms = Math.sqrt(rms / (end - i));
+          if (rms > 0.005) {
+            silenceStart = i / sampleRate;
+            break;
+          }
+        }
+
+        // Scan trailing silence
+        for (let i = checkLength - 1; i >= 0; i -= step) {
+          let rms = 0;
+          const start = Math.max(0, i - step);
+          for (let j = start; j < i; j++) {
+            rms += data[j] * data[j];
+          }
+          rms = Math.sqrt(rms / (i - start));
+          if (rms > 0.005) {
+            silenceEnd = i / sampleRate;
+            break;
+          }
+        }
+      } catch (e) {
+        console.warn('Silence scanning failed:', e);
+      }
+
+      if (silenceEnd <= silenceStart) silenceEnd = duration;
+
+      const activeDuration = silenceEnd - silenceStart;
+      // DJ intro/outro crop (15s or 10% of track)
+      const cropAmount = Math.min(15, activeDuration * 0.1);
+
+      let start = silenceStart;
+      let end = silenceEnd;
+
+      if (list.length === 1) {
+        start = silenceStart;
+        end = silenceEnd;
+      } else if (idx === 0) {
+        // First track: trim outro only
+        start = silenceStart;
+        end = silenceEnd - cropAmount;
+      } else if (idx === list.length - 1) {
+        // Last track: trim intro only
+        start = silenceStart + cropAmount;
+        end = silenceEnd;
+      } else {
+        // Middle tracks: trim both intro and outro
+        start = silenceStart + cropAmount;
+        end = silenceEnd - cropAmount;
+      }
+
+      // Fallback
+      if (end <= start + 2) {
+        start = silenceStart;
+        end = silenceEnd;
+      }
+
+      return {
+        ...track,
+        clipStart: parseFloat(start.toFixed(2)),
+        clipEnd: parseFloat(end.toFixed(2))
+      };
+    });
+  };
+
   const runAutomix = () => {
     if (playlist.length < 2) return;
     setAutomixing(true);
@@ -495,8 +581,9 @@ export default function MixingPage() {
         ordered.push(current);
       }
 
-      setPlaylist(ordered);
-      recalculateTimeline(ordered);
+      const cutOrdered = performAutoCut(ordered);
+      setPlaylist(cutOrdered);
+      recalculateTimeline(cutOrdered);
       setAutomixing(false);
       showToast(language === 'id' ? 'Automix berhasil diselaraskan' : 'Automix aligned successfully', 'success');
     };
