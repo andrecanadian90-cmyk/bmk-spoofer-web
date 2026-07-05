@@ -430,17 +430,75 @@ export default function MixingPage() {
     return maxEnd;
   };
 
+  const getOptimalKeySync = (keyA, keyB) => {
+    if (keyA === keyB || getCamelotCompatibilityScore(keyA, keyB) > 0) {
+      return { detune: 0, newKey: keyB };
+    }
+
+    const CAMELOT_ROOTS = {
+      'A': {
+        '1A': 8, '2A': 3, '3A': 10, '4A': 5, '5A': 0, '6A': 7,
+        '7A': 2, '8A': 9, '9A': 4, '10A': 11, '11A': 6, '12A': 1
+      },
+      'B': {
+        '1B': 11, '2B': 6, '3B': 1, '4B': 8, '5B': 3, '6B': 10,
+        '7B': 5, '8B': 0, '9B': 7, '10B': 2, '11B': 9, '12B': 4
+      }
+    };
+
+    const modeB = keyB.slice(-1);
+    const rootsB = CAMELOT_ROOTS[modeB];
+    if (!rootsB) return { detune: 0, newKey: keyB };
+
+    const originalRootB = rootsB[keyB];
+    if (originalRootB === undefined) return { detune: 0, newKey: keyB };
+
+    const shifts = [-1, 1, -2, 2];
+    let bestShift = 0;
+    let bestNewKey = keyB;
+    let bestScore = 0;
+
+    for (const shift of shifts) {
+      const targetRoot = (originalRootB + shift + 12) % 12;
+      const candidateKey = Object.keys(rootsB).find(k => rootsB[k] === targetRoot);
+      if (candidateKey) {
+        const score = getCamelotCompatibilityScore(keyA, candidateKey);
+        if (score > bestScore) {
+          bestScore = score;
+          bestShift = shift;
+          bestNewKey = candidateKey;
+        }
+      }
+    }
+
+    if (bestScore > 0) {
+      return { detune: bestShift * 100, newKey: bestNewKey };
+    }
+
+    return { detune: 0, newKey: keyB };
+  };
+
   const recalculateTimeline = (list = playlist) => {
     let clock = 0;
     const updated = [];
     
     list.forEach((track, idx) => {
       const clonedTrack = { ...track };
+      clonedTrack.originalKey = clonedTrack.originalKey || clonedTrack.key;
+
       if (idx === 0) {
         clonedTrack.timelineStart = 0;
+        clonedTrack.detune = 0;
+        clonedTrack.key = clonedTrack.originalKey;
         clock = clonedTrack.clipEnd - clonedTrack.clipStart;
       } else {
         const prev = updated[idx - 1];
+        
+        // Auto-Key Sync solver
+        const sync = getOptimalKeySync(prev.key, clonedTrack.originalKey);
+        clonedTrack.detune = sync.detune;
+        clonedTrack.key = sync.newKey;
+
         const overlap = getTransitionDuration(prev, clonedTrack);
         clonedTrack.timelineStart = Math.max(0, clock - overlap);
         clock = clonedTrack.timelineStart + (clonedTrack.clipEnd - clonedTrack.clipStart);
@@ -752,6 +810,7 @@ export default function MixingPage() {
 
     const offset = Math.max(0, playbackTime - track.timelineStart);
     const durationToPlay = Math.max(0, (track.clipEnd - track.clipStart) - offset);
+    sourceNode.detune.setValueAtTime(track.detune || 0, audioCtx.currentTime);
     sourceNode.start(0, track.clipStart + offset, durationToPlay);
 
     activeSourcesRef.current[track.id] = { sourceNode, gainNode, lowFilterNode };
@@ -928,6 +987,7 @@ export default function MixingPage() {
           gainNode.gain.setValueAtTime(1.0 * volumeFactor, Math.max(0, trackTimelineEnd - 0.1));
         }
 
+        sourceNode.detune.setValueAtTime(track.detune || 0, 0);
         sourceNode.start(track.timelineStart, track.clipStart, trackDur);
       });
 
@@ -1277,7 +1337,12 @@ export default function MixingPage() {
                       </td>
                       <td style={{ fontSize: '0.72rem', padding: '10px 10px' }}>{track.bpm}</td>
                       <td style={{ fontSize: '0.72rem', padding: '10px 10px', color: color, fontWeight: 800 }}>
-                        {track.key} {idx > 0 && (isCompatible ? '✅' : '⚠️')}
+                        <div>{track.key} {idx > 0 && (isCompatible ? '✅' : '⚠️')}</div>
+                        {track.detune !== 0 && track.detune !== undefined && (
+                          <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 400, marginTop: 2 }}>
+                            ({track.detune > 0 ? '+' : ''}{track.detune / 100} Semitone Sync)
+                          </div>
+                        )}
                       </td>
                       <td style={{ fontSize: '0.72rem', padding: '10px 10px' }}>
                         <div style={{ fontWeight: 700 }}>{formatTime(track.clipEnd - track.clipStart)}</div>
