@@ -373,13 +373,15 @@ export default function MixingPage() {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    initAudioContext();
     showToast(language === 'id' ? 'Mendecode audio...' : 'Decoding audio...', 'info');
+
+    const OfflineCtxClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const decodeCtx = new OfflineCtxClass(1, 44100, 44100);
 
     for (const file of files) {
       try {
         const arrayBuffer = await file.arrayBuffer();
-        const audioBuffer = await audioCtxRef.current.decodeAudioData(arrayBuffer);
+        const audioBuffer = await decodeCtx.decodeAudioData(arrayBuffer);
 
         const bpm = estimateBPM(audioBuffer);
         const key = estimateKey(audioBuffer);
@@ -798,13 +800,14 @@ export default function MixingPage() {
     activeSourcesRef.current = {};
   };
 
-  const startPlayback = () => {
+  const startPlayback = async () => {
     initAudioContext();
     if (audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume();
+      await audioCtxRef.current.resume();
     }
     setIsPlaying(true);
     lastUpdateTimeRef.current = audioCtxRef.current.currentTime;
+    if (playbackIntervalRef.current) clearInterval(playbackIntervalRef.current);
     playbackIntervalRef.current = setInterval(updatePlaybackClock, 100);
     scheduleAudioNodes();
   };
@@ -1295,21 +1298,133 @@ export default function MixingPage() {
           {/* Logo Compact */}
           <span style={{ fontSize: '1rem', fontWeight: 900 }}>BERNADA <span style={{ color: 'var(--accent)' }}>MIXER</span></span>
           
-          {/* Playback Progress */}
-          <div style={{ width: '100%' }}>
+          {/* Playback Progress & Timeline Scrubber */}
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
             <canvas ref={canvasRef} width="220" height="40" style={{ display: 'block', background: 'rgba(0,0,0,0.03)', borderRadius: 8, margin: '0 auto 8px' }} />
+            
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
               <span>{formatTime(playbackTime)}</span>
               <span>{formatTime(getMixTotalDuration())}</span>
             </div>
-            <input 
-              type="range"
-              min="0"
-              max={getMixTotalDuration() || 100}
-              value={playbackTime}
-              onChange={(e) => setPlaybackTime(parseFloat(e.target.value))}
-              style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer' }}
-            />
+
+            {/* Interactive Visual Timeline Scrubber */}
+            <div 
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const pct = clickX / rect.width;
+                const totalDur = getMixTotalDuration();
+                const newTime = pct * totalDur;
+                setPlaybackTime(newTime);
+                if (isPlaying) {
+                  stopAllActiveSources();
+                  setTimeout(() => {
+                    scheduleAudioNodes();
+                  }, 30);
+                }
+              }}
+              style={{ 
+                width: '100%', 
+                height: 32, 
+                background: 'rgba(255, 255, 255, 0.05)', 
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 6, 
+                position: 'relative', 
+                cursor: 'pointer',
+                overflow: 'hidden'
+              }}
+            >
+              {/* Tracks Segments */}
+              {playlist.map((track, idx) => {
+                const totalDur = getMixTotalDuration();
+                if (totalDur <= 0) return null;
+                const trackDur = track.clipEnd - track.clipStart;
+                const startPct = (track.timelineStart / totalDur) * 100;
+                const widthPct = (trackDur / totalDur) * 100;
+                return (
+                  <div 
+                    key={"seg_" + track.id}
+                    style={{
+                      position: 'absolute',
+                      left: `${startPct}%`,
+                      width: `${widthPct}%`,
+                      height: '100%',
+                      background: idx % 2 === 0 ? 'rgba(37,99,235,0.15)' : 'rgba(16,185,129,0.15)',
+                      borderRight: '1px solid rgba(255,255,255,0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.58rem',
+                      fontWeight: 700,
+                      color: 'var(--text-secondary)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      padding: '0 4px',
+                      userSelect: 'none'
+                    }}
+                    title={track.name}
+                  >
+                    {track.name}
+                  </div>
+                );
+              })}
+
+              {/* Transition Overlaps Highlights */}
+              {playlist.map((track, idx) => {
+                if (idx === playlist.length - 1) return null;
+                const totalDur = getMixTotalDuration();
+                if (totalDur <= 0) return null;
+                const next = playlist[idx + 1];
+                const trackDur = track.clipEnd - track.clipStart;
+                const prevEnd = track.timelineStart + trackDur;
+                const overlapStart = next.timelineStart;
+                const overlapEnd = prevEnd;
+                const overlapDur = Math.max(0, overlapEnd - overlapStart);
+                if (overlapDur <= 0) return null;
+
+                const startPct = (overlapStart / totalDur) * 100;
+                const widthPct = (overlapDur / totalDur) * 100;
+
+                return (
+                  <div 
+                    key={"overlap_" + track.id}
+                    style={{
+                      position: 'absolute',
+                      left: `${startPct}%`,
+                      width: `${widthPct}%`,
+                      height: '100%',
+                      background: 'repeating-linear-gradient(45deg, rgba(245,158,11,0.25), rgba(245,158,11,0.25) 8px, rgba(245,158,11,0.1) 8px, rgba(245,158,11,0.1) 16px)',
+                      borderLeft: '1px dashed var(--warning)',
+                      borderRight: '1px dashed var(--warning)',
+                      zIndex: 2,
+                      pointerEvents: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <span style={{ fontSize: '0.52rem', color: '#d97706', fontWeight: 900, textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>MIX</span>
+                  </div>
+                );
+              })}
+
+              {/* Real-time Playhead line */}
+              {getMixTotalDuration() > 0 && (
+                <div 
+                  style={{
+                    position: 'absolute',
+                    left: `${(playbackTime / getMixTotalDuration()) * 100}%`,
+                    width: 3,
+                    height: '100%',
+                    background: 'var(--danger)',
+                    boxShadow: '0 0 8px var(--danger)',
+                    zIndex: 3,
+                    pointerEvents: 'none'
+                  }}
+                />
+              )}
+            </div>
           </div>
 
           {/* Buttons */}
