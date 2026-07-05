@@ -150,6 +150,8 @@ export default function MixingPage() {
   const [transitionStyle, setTransitionStyle] = useState('smooth');
   const [autoCutMode, setAutoCutMode] = useState('high');
   const [editingTrackId, setEditingTrackId] = useState(null);
+  const [previewingTrackId, setPreviewingTrackId] = useState(null);
+  const previewSourceRef = useRef(null);
   const [playbackTime, setPlaybackTime] = useState(0);
   const [viewMode, setViewMode] = useState('timeline'); // 'timeline' or 'table'
   const [exportFormat, setExportFormat] = useState('mp3');
@@ -559,6 +561,55 @@ export default function MixingPage() {
       setTimeout(() => recalculateTimeline(next), 10);
       return next;
     });
+  };
+
+  const getMinutesSeconds = (totalSecs) => {
+    const m = Math.floor(totalSecs / 60);
+    const s = Math.round(totalSecs % 60);
+    return { m, s };
+  };
+
+  const playTrackPreview = (track) => {
+    initAudioContext();
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+    stopTrackPreview();
+    stopAllActiveSources();
+    if (isPlaying) pausePlayback();
+
+    const audioCtx = audioCtxRef.current;
+    const sourceNode = audioCtx.createBufferSource();
+    sourceNode.buffer = track.buffer;
+
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.value = 0.8;
+
+    sourceNode.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    const playDur = track.clipEnd - track.clipStart;
+    sourceNode.start(0, track.clipStart, playDur);
+
+    previewSourceRef.current = sourceNode;
+    setPreviewingTrackId(track.id);
+
+    sourceNode.onended = () => {
+      if (previewSourceRef.current === sourceNode) {
+        setPreviewingTrackId(null);
+        previewSourceRef.current = null;
+      }
+    };
+  };
+
+  const stopTrackPreview = () => {
+    if (previewSourceRef.current) {
+      try {
+        previewSourceRef.current.stop();
+      } catch {}
+      previewSourceRef.current = null;
+    }
+    setPreviewingTrackId(null);
   };
 
   // Camelot compatibility sorting algorithm
@@ -1640,66 +1691,137 @@ export default function MixingPage() {
                           </button>
                         </td>
                       </tr>
-                      {editingTrackId === track.id && (
-                        <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
-                          <td colSpan="6" style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--accent)', display: 'flex', justifyContent: 'space-between' }}>
-                                <span>MANUAL AUDIO CUT & CROP</span>
-                                {track.manualCut && (
-                                  <span style={{ color: 'var(--success)' }}>✏️ MANUAL MODE ACTIVE (AUTOMIX WILL PRESERVE THIS)</span>
-                                )}
-                              </div>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                  <label style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                                    START CROP (Seconds)
-                                  </label>
-                                  <input 
-                                    type="number" 
-                                    className="input"
-                                    style={{ padding: '4px 8px', fontSize: '0.7rem', height: 'auto', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
-                                    min="0" 
-                                    max={Math.max(0, track.clipEnd - 5)} 
-                                    value={track.clipStart} 
-                                    onChange={(e) => handleManualCutChange(idx, parseFloat(e.target.value) || 0, track.clipEnd)}
-                                  />
+                      {editingTrackId === track.id && (() => {
+                        const { m: startMin, s: startSec } = getMinutesSeconds(track.clipStart);
+                        const { m: endMin, s: endSec } = getMinutesSeconds(track.clipEnd);
+                        const { m: totalMin, s: totalSec } = getMinutesSeconds(track.duration);
+                        const isPreviewing = previewingTrackId === track.id;
+
+                        return (
+                          <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                            <td colSpan="6" style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--accent)', display: 'flex', justifyContent: 'space-between' }}>
+                                  <span>MANUAL AUDIO CUT & CROP (MINUTE:SECOND FORMAT)</span>
+                                  {track.manualCut && (
+                                    <span style={{ color: 'var(--success)' }}>✏️ MANUAL MODE ACTIVE (AUTOMIX WILL PRESERVE THIS)</span>
+                                  )}
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                  <label style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                                    END CROP (Seconds)
-                                  </label>
-                                  <input 
-                                    type="number" 
-                                    className="input"
-                                    style={{ padding: '4px 8px', fontSize: '0.7rem', height: 'auto', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
-                                    min={track.clipStart + 5} 
-                                    max={track.duration} 
-                                    value={track.clipEnd} 
-                                    onChange={(e) => handleManualCutChange(idx, track.clipStart, parseFloat(e.target.value) || track.duration)}
-                                  />
+                                
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                                  {/* Start Crop */}
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                    <label style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                                      START AT (Min : Sec) — Total: {totalMin}m {totalSec}s
+                                    </label>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                      <input 
+                                        type="number" 
+                                        className="input"
+                                        style={{ width: '70px', padding: '6px 8px', fontSize: '0.75rem', textAlign: 'center', height: 'auto', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                                        min="0" 
+                                        max={totalMin}
+                                        value={startMin} 
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value) || 0;
+                                          handleManualCutChange(idx, val * 60 + startSec, track.clipEnd);
+                                        }}
+                                      />
+                                      <span style={{ fontWeight: 800 }}>:</span>
+                                      <input 
+                                        type="number" 
+                                        className="input"
+                                        style={{ width: '70px', padding: '6px 8px', fontSize: '0.75rem', textAlign: 'center', height: 'auto', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                                        min="0" 
+                                        max="59"
+                                        value={startSec} 
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value) || 0;
+                                          handleManualCutChange(idx, startMin * 60 + val, track.clipEnd);
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* End Crop */}
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                    <label style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                                      END AT (Min : Sec) — Total: {totalMin}m {totalSec}s
+                                    </label>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                      <input 
+                                        type="number" 
+                                        className="input"
+                                        style={{ width: '70px', padding: '6px 8px', fontSize: '0.75rem', textAlign: 'center', height: 'auto', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                                        min="0" 
+                                        max={totalMin}
+                                        value={endMin} 
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value) || 0;
+                                          handleManualCutChange(idx, track.clipStart, val * 60 + endSec);
+                                        }}
+                                      />
+                                      <span style={{ fontWeight: 800 }}>:</span>
+                                      <input 
+                                        type="number" 
+                                        className="input"
+                                        style={{ width: '70px', padding: '6px 8px', fontSize: '0.75rem', textAlign: 'center', height: 'auto', background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                                        min="0" 
+                                        max="59"
+                                        value={endSec} 
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value) || 0;
+                                          handleManualCutChange(idx, track.clipStart, endMin * 60 + val);
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Controls bar: Reset, Preview and Done */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                  <div>
+                                    {isPreviewing ? (
+                                      <button 
+                                        className="btn btn-danger" 
+                                        style={{ padding: '6px 12px', fontSize: '0.7rem' }}
+                                        onClick={stopTrackPreview}
+                                      >
+                                        ⏸ Stop Preview
+                                      </button>
+                                    ) : (
+                                      <button 
+                                        className="btn btn-success" 
+                                        style={{ padding: '6px 12px', fontSize: '0.7rem', color: '#fff' }}
+                                        onClick={() => playTrackPreview(track)}
+                                      >
+                                        ▶️ Preview Crop
+                                      </button>
+                                    )}
+                                  </div>
+                                  
+                                  <div style={{ display: 'flex', gap: 8 }}>
+                                    <button 
+                                      className="btn btn-outline btn-sm" 
+                                      style={{ padding: '6px 12px', fontSize: '0.7rem' }}
+                                      onClick={() => handleResetManualCut(idx)}
+                                    >
+                                      Reset
+                                    </button>
+                                    <button 
+                                      className="btn btn-primary btn-sm" 
+                                      style={{ padding: '6px 12px', fontSize: '0.7rem' }}
+                                      onClick={() => setEditingTrackId(null)}
+                                    >
+                                      Done
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
-                              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
-                                <button 
-                                  className="btn btn-outline btn-sm" 
-                                  style={{ padding: '4px 10px', fontSize: '0.62rem' }}
-                                  onClick={() => handleResetManualCut(idx)}
-                                >
-                                  Reset to Full Length
-                                </button>
-                                <button 
-                                  className="btn btn-primary btn-sm" 
-                                  style={{ padding: '4px 10px', fontSize: '0.62rem' }}
-                                  onClick={() => setEditingTrackId(null)}
-                                >
-                                  Done
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
+                            </td>
+                          </tr>
+                        );
+                      })()}
                     </Fragment>
                   );
                 })}
