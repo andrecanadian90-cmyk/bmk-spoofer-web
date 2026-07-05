@@ -1351,7 +1351,18 @@ export default function MixingPage() {
         const data = await res.json();
         if (!data.success) throw new Error(data.error);
 
-        // Update auth user profile and trigger unlocking
+        // Double insurance: set trial info locally for instant unlock
+        const trialData = {
+          demo: true,
+          username: user ? user.username : 'TrialUser',
+          expiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          timeleft: '24 Hours',
+          trial: true
+        };
+        setLicenseInfo(trialData);
+        localStorage.setItem('bmk_mixing_license', JSON.stringify(trialData));
+
+        // Update auth user profile in background
         refreshUser();
         showToast(language === 'id' ? 'Free Trial 1 Hari Berhasil Diaktifkan!' : '1-Day Free Trial Activated successfully!', 'success');
       } catch (err) {
