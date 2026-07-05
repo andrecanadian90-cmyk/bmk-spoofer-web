@@ -9,6 +9,9 @@ const translations = {
     title: 'Akun Roblox',
     linkRequiredToast: 'Semua kolom (Roblox ID, Cloud API Key, dan Roblox Cookie) wajib diisi.',
     linkSuccessToast: 'Kredensial Roblox berhasil dihubungkan',
+    unlinkSuccessToast: 'Kredensial Roblox berhasil diputuskan',
+    unlinkConfirm: 'Apakah Anda yakin ingin memutuskan/logout akun Roblox ini?',
+    robloxLogout: 'Logout Akun',
     updateCreds: 'Perbarui Kredensial',
     linkCreds: 'Hubungkan Kredensial',
     robloxUserId: 'Roblox User ID',
@@ -31,6 +34,9 @@ const translations = {
     title: 'Roblox Account',
     linkRequiredToast: 'All fields (Roblox ID, Cloud API Key, and Roblox Cookie) are required.',
     linkSuccessToast: 'Roblox credentials linked successfully',
+    unlinkSuccessToast: 'Roblox credentials unlinked successfully',
+    unlinkConfirm: 'Are you sure you want to disconnect/logout this Roblox account?',
+    robloxLogout: 'Logout Account',
     updateCreds: 'Update Credentials',
     linkCreds: 'Link Credentials',
     robloxUserId: 'Roblox User ID',
@@ -62,6 +68,10 @@ export default function AccountPage() {
 
   const t = (key) => translations[language]?.[key] || translations['id'][key];
 
+  useEffect(() => {
+    setRobloxId(user?.robloxId || '');
+  }, [user]);
+
   const isFormInvalid = !robloxId.trim() || !apiKey.trim() || !robloxCookie.trim();
 
   const linkAccount = async () => {
@@ -81,6 +91,29 @@ export default function AccountPage() {
       if (!data.success) throw new Error(data.error);
       
       showToast(t('linkSuccessToast'), 'success');
+      setApiKey('');
+      setRobloxCookie('');
+      refreshUser();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setLinking(false);
+    }
+  };
+
+  const unlinkAccount = async () => {
+    if (!window.confirm(t('unlinkConfirm'))) return;
+
+    setLinking(true);
+    try {
+      const res = await fetch('/api/roblox/link', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+
+      showToast(t('unlinkSuccessToast'), 'success');
       setApiKey('');
       setRobloxCookie('');
       refreshUser();
@@ -126,13 +159,41 @@ export default function AccountPage() {
               <div style={{ fontWeight: 700 }}>{user.robloxUsername}</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: {user.robloxId}</div>
             </div>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
               {user.robloxCookie ? (
                 <span className="badge badge-info" style={{ fontSize: '0.6rem' }}>{t('cookieLinked')}</span>
               ) : (
                 <span className="badge badge-warning" style={{ fontSize: '0.6rem' }}>{t('cookieNotLinked')}</span>
               )}
-              <span className="badge badge-success">{t('active')}</span>
+              <span className="badge badge-success" style={{ marginRight: 8 }}>{t('active')}</span>
+              <button 
+                onClick={unlinkAccount}
+                className="btn-unlink"
+                style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  color: '#ef4444',
+                  borderRadius: 6,
+                  padding: '6px 12px',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                  e.currentTarget.style.borderColor = '#ef4444';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.25)';
+                }}
+              >
+                🚪 {t('robloxLogout')}
+              </button>
             </div>
           </div>
         </div>

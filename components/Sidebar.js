@@ -37,7 +37,7 @@ const translations = {
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { language } = useLanguage();
 
   const t = (key) => translations[language]?.[key] || translations['id'][key];
@@ -96,6 +96,46 @@ export default function Sidebar() {
           </>
         )}
       </nav>
+
+      <div className="sidebar-footer" style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* Coin display */}
+        <div className="sidebar-coins">
+          <div className="sidebar-coins-val">{user?.coins || 0}</div>
+          <div className="sidebar-coins-lbl">{language === 'id' ? 'Koin Saya' : 'My Coins'}</div>
+        </div>
+
+        {/* Logout Button */}
+        <button 
+          onClick={logout}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            width: '100%',
+            padding: '10px 14px',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid rgba(239, 68, 68, 0.15)',
+            background: 'rgba(239, 68, 68, 0.04)',
+            color: '#ef4444',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            outline: 'none'
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+            e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.04)';
+            e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.15)';
+          }}
+        >
+          🚪 {language === 'id' ? 'Logout Akun' : 'Logout'}
+        </button>
+      </div>
     </div>
   );
 }

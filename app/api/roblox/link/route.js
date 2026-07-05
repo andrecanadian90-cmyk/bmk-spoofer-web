@@ -60,3 +60,36 @@ export async function POST(request) {
     return NextResponse.json({ success: false, error: err.message }, { status });
   }
 }
+
+export async function DELETE(request) {
+  try {
+    const decoded = requireAuth(request);
+    await connectDB();
+
+    const user = await User.findByIdAndUpdate(
+      decoded.userId,
+      {
+        robloxId: null,
+        robloxUsername: null,
+        robloxDisplayName: null,
+        robloxApiKey: null,
+        robloxCookie: null,
+      },
+      { new: true }
+    ).select('-password');
+
+    return NextResponse.json({
+      success: true,
+      message: 'Roblox account unlinked successfully',
+      data: {
+        robloxId: null,
+        robloxUsername: null,
+        robloxDisplayName: null,
+        hasCookie: false
+      }
+    });
+  } catch (err) {
+    const status = err.message === 'Unauthorized' ? 401 : 500;
+    return NextResponse.json({ success: false, error: err.message }, { status });
+  }
+}
