@@ -148,6 +148,7 @@ export default function MixingPage() {
   const [deckLeftFader, setDeckLeftFader] = useState(1.0);
   const [deckRightFader, setDeckRightFader] = useState(1.0);
   const [transitionStyle, setTransitionStyle] = useState('smooth');
+  const [autoCutMode, setAutoCutMode] = useState('high');
   const [playbackTime, setPlaybackTime] = useState(0);
   const [viewMode, setViewMode] = useState('timeline'); // 'timeline' or 'table'
   const [exportFormat, setExportFormat] = useState('mp3');
@@ -618,17 +619,50 @@ export default function MixingPage() {
         const climaxBeats = targetBeats - 32; 
         const climaxDuration = climaxBeats * beatDuration;
         const windowCount = Math.round(climaxDuration / windowSize);
-        let maxEnergy = -1;
         let bestIdx = 0;
 
-        for (let i = 0; i <= rmsProfile.length - windowCount; i++) {
-          let energySum = 0;
-          for (let j = 0; j < windowCount; j++) {
-            energySum += rmsProfile[i + j];
+        if (autoCutMode === 'low') {
+          // Low Energy: find the quietest active section (breakdowns/intro verse)
+          let minEnergy = Infinity;
+          for (let i = 0; i <= rmsProfile.length - windowCount; i++) {
+            let energySum = 0;
+            for (let j = 0; j < windowCount; j++) {
+              energySum += rmsProfile[i + j];
+            }
+            const averageRms = energySum / windowCount;
+            // Filter out digital silence (RMS > 0.005)
+            if (averageRms > 0.005 && energySum < minEnergy) {
+              minEnergy = energySum;
+              bestIdx = i;
+            }
           }
-          if (energySum > maxEnergy) {
-            maxEnergy = energySum;
-            bestIdx = i;
+        } else if (autoCutMode === 'balanced') {
+          // Balanced: find the section closest to the median energy of the track
+          const energySums = [];
+          for (let i = 0; i <= rmsProfile.length - windowCount; i++) {
+            let energySum = 0;
+            for (let j = 0; j < windowCount; j++) {
+              energySum += rmsProfile[i + j];
+            }
+            energySums.push({ idx: i, sum: energySum });
+          }
+          if (energySums.length > 0) {
+            energySums.sort((a, b) => a.sum - b.sum);
+            const medianIdx = Math.floor(energySums.length / 2);
+            bestIdx = energySums[medianIdx].idx;
+          }
+        } else {
+          // Default 'high' (climax): find the loudest segment (drop/chorus)
+          let maxEnergy = -1;
+          for (let i = 0; i <= rmsProfile.length - windowCount; i++) {
+            let energySum = 0;
+            for (let j = 0; j < windowCount; j++) {
+              energySum += rmsProfile[i + j];
+            }
+            if (energySum > maxEnergy) {
+              maxEnergy = energySum;
+              bestIdx = i;
+            }
           }
         }
 
@@ -1460,6 +1494,20 @@ export default function MixingPage() {
                 <option value="smooth">{t('smoothCrossfade')}</option>
                 <option value="cut">{t('quickCut')}</option>
                 <option value="bass">{t('bassSwapHeavy')}</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Auto-Cut Mode</label>
+              <select 
+                className="input" 
+                style={{ padding: '6px 10px', fontSize: '0.72rem', height: 'auto' }}
+                value={autoCutMode}
+                onChange={(e) => setAutoCutMode(e.target.value)}
+              >
+                <option value="high">🔥 High Energy (Chorus/Drop)</option>
+                <option value="low">🍃 Low Energy (Intro/Verse)</option>
+                <option value="balanced">🎼 Balanced (Melodic Bridge)</option>
               </select>
             </div>
 
