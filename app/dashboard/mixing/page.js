@@ -251,7 +251,17 @@ export default function MixingPage() {
 
     const analyserNode = audioCtx.createAnalyser();
     analyserNode.fftSize = 256;
-    analyserNode.connect(audioCtx.destination);
+    
+    // Master Compressor / Limiter Node
+    const compressor = audioCtx.createDynamicsCompressor();
+    compressor.threshold.setValueAtTime(-12, audioCtx.currentTime); // start compression at -12dB
+    compressor.knee.setValueAtTime(30, audioCtx.currentTime);        // smooth transition
+    compressor.ratio.setValueAtTime(12, audioCtx.currentTime);       // strong ratio (limiter)
+    compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);   // ultra-fast attack
+    compressor.release.setValueAtTime(0.25, audioCtx.currentTime);   // release time
+
+    analyserNode.connect(compressor);
+    compressor.connect(audioCtx.destination);
     analyserRef.current = analyserNode;
 
     startVisualizerLoop();
@@ -656,18 +666,27 @@ export default function MixingPage() {
         }
       }
 
+      // Auto-Gain Normalization calculation
+      let avgEnergy = 0.15;
+      if (rmsProfile.length > 0) {
+        avgEnergy = rmsProfile.reduce((a, b) => a + b, 0) / rmsProfile.length;
+      }
+      const targetEnergy = 0.15;
+      const volumeNormalizer = Math.min(2.0, Math.max(0.5, targetEnergy / (avgEnergy || 0.15)));
+
       // Final sanity check
       if (end <= start + 5) {
         start = silenceStart;
         end = silenceEnd;
       }
 
-      console.log(`[AutoCut PerfectPhrase] ${track.name} (${bpm} BPM): Original=${duration.toFixed(2)}s, Silence=[${silenceStart.toFixed(2)}s - ${silenceEnd.toFixed(2)}s], PhraseCut=[${start.toFixed(2)}s - ${end.toFixed(2)}s] (Length: ${((end - start) / beatDuration).toFixed(0)} beats, Kept ${(100 * (end - start) / duration).toFixed(0)}%)`);
+      console.log(`[AutoCut PerfectPhrase] ${track.name} (${bpm} BPM): Original=${duration.toFixed(2)}s, Silence=[${silenceStart.toFixed(2)}s - ${silenceEnd.toFixed(2)}s], PhraseCut=[${start.toFixed(2)}s - ${end.toFixed(2)}s] (Length: ${((end - start) / beatDuration).toFixed(0)} beats, Normalizer: ${volumeNormalizer.toFixed(2)}x, Kept ${(100 * (end - start) / duration).toFixed(0)}%)`);
 
       return {
         ...track,
         clipStart: parseFloat(start.toFixed(2)),
-        clipEnd: parseFloat(end.toFixed(2))
+        clipEnd: parseFloat(end.toFixed(2)),
+        volumeNormalizer: parseFloat(volumeNormalizer.toFixed(3))
       };
     });
   };
@@ -877,7 +896,7 @@ export default function MixingPage() {
       const trackDur = track.clipEnd - track.clipStart;
       const trackEnd = track.timelineStart + trackDur;
       const fader = (index % 2 === 0) ? deckLeftFader : deckRightFader;
-      const volumeFactor = masterVolume * fader;
+      const volumeFactor = masterVolume * fader * (track.volumeNormalizer || 1.0);
 
       let gain = 1.0;
       let bass = 0;
@@ -944,6 +963,15 @@ export default function MixingPage() {
       const OfflineCtxClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
       const offlineCtx = new OfflineCtxClass(2, sampleRate * totalDuration, sampleRate);
 
+      // Offline Mastering Limiter / Compressor Node
+      const compressor = offlineCtx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-12, 0);
+      compressor.knee.setValueAtTime(30, 0);
+      compressor.ratio.setValueAtTime(12, 0);
+      compressor.attack.setValueAtTime(0.003, 0);
+      compressor.release.setValueAtTime(0.25, 0);
+      compressor.connect(offlineCtx.destination);
+
       setExportProgress(30);
 
       playlist.forEach((track, index) => {
@@ -958,7 +986,7 @@ export default function MixingPage() {
 
         sourceNode.connect(lowFilter);
         lowFilter.connect(gainNode);
-        gainNode.connect(offlineCtx.destination);
+        gainNode.connect(compressor);
 
         const trackDur = track.clipEnd - track.clipStart;
         const trackTimelineEnd = track.timelineStart + trackDur;
@@ -967,7 +995,7 @@ export default function MixingPage() {
         lowFilter.gain.setValueAtTime(0, 0);
 
         const fader = (index % 2 === 0) ? deckLeftFader : deckRightFader;
-        const volumeFactor = masterVolume * fader;
+        const volumeFactor = masterVolume * fader * (track.volumeNormalizer || 1.0);
 
         // FADE IN
         if (index > 0) {
