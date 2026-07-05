@@ -172,6 +172,17 @@ export default function MixingPage() {
   const t = (key) => translations[language]?.[key] || translations['id'][key];
 
   useEffect(() => {
+    // Configure Emscripten Module global for Ogg encoder path resolution
+    window.Module = {
+      locateFile: (path) => {
+        if (path.endsWith('.mem')) {
+          return '/' + path;
+        }
+        return path;
+      },
+      memoryInitializerPrefixURL: '/'
+    };
+
     setMounted(true);
     const savedLicense = localStorage.getItem('bmk_mixing_license');
     if (savedLicense) {
