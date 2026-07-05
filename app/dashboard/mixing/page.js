@@ -733,12 +733,12 @@ export default function MixingPage() {
     setAutomixStep(0);
 
     const runSteps = async () => {
-      // Simulate DSP solver stages with 1200ms delay for clear visual feedback
+      // Simulate DSP solver stages with 2500ms delay for clear visual feedback
       for (let step = 1; step <= 5; step++) {
-        await new Promise(r => setTimeout(r, 1200));
+        await new Promise(r => setTimeout(r, 2500));
         setAutomixStep(step);
       }
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise(r => setTimeout(r, 1000));
 
       // Global Path Optimization Sort: Try every song as the starting song and pick the smoothest chain
       const originalList = [...playlist];
