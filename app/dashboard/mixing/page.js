@@ -478,6 +478,8 @@ export default function MixingPage() {
       const duration = track.duration || (buffer ? buffer.duration : 0);
       let silenceStart = 0;
       let silenceEnd = duration;
+      let rmsProfile = [];
+      const windowSize = 2; // 2-second windows
 
       if (buffer) {
         try {
@@ -486,7 +488,7 @@ export default function MixingPage() {
           const checkLength = data.length;
           const step = Math.floor(sampleRate * 0.1); // 100ms steps
 
-          // Scan leading silence
+          // 1. Scan leading silence
           for (let i = 0; i < checkLength; i += step) {
             let rms = 0;
             const end = Math.min(checkLength, i + step);
@@ -494,13 +496,13 @@ export default function MixingPage() {
               rms += data[j] * data[j];
             }
             rms = Math.sqrt(rms / (end - i));
-            if (rms > 0.005) {
+            if (rms > 0.003) {
               silenceStart = i / sampleRate;
               break;
             }
           }
 
-          // Scan trailing silence
+          // 2. Scan trailing silence
           for (let i = checkLength - 1; i >= 0; i -= step) {
             let rms = 0;
             const start = Math.max(0, i - step);
@@ -508,10 +510,21 @@ export default function MixingPage() {
               rms += data[j] * data[j];
             }
             rms = Math.sqrt(rms / (i - start));
-            if (rms > 0.005) {
+            if (rms > 0.003) {
               silenceEnd = i / sampleRate;
               break;
             }
+          }
+
+          // 3. Build RMS Energy Profile (every 2 seconds)
+          const profileStep = Math.floor(sampleRate * windowSize);
+          for (let i = 0; i < checkLength; i += profileStep) {
+            let sum = 0;
+            const end = Math.min(checkLength, i + profileStep);
+            for (let j = i; j < end; j++) {
+              sum += data[j] * data[j];
+            }
+            rmsProfile.push(Math.sqrt(sum / (end - i)));
           }
         } catch (e) {
           console.warn('Silence scanning failed:', e);
@@ -519,38 +532,96 @@ export default function MixingPage() {
       }
 
       if (silenceEnd <= silenceStart) silenceEnd = duration;
-
       const activeDuration = silenceEnd - silenceStart;
-      // DJ intro/outro crop (15s or 10% of track)
-      const cropAmount = Math.min(15, activeDuration * 0.1);
 
       let start = silenceStart;
       let end = silenceEnd;
 
-      if (list.length === 1) {
-        start = silenceStart;
-        end = silenceEnd;
-      } else if (idx === 0) {
-        // First track: trim outro only
-        start = silenceStart;
-        end = silenceEnd - cropAmount;
-      } else if (idx === list.length - 1) {
-        // Last track: trim intro only
-        start = silenceStart + cropAmount;
-        end = silenceEnd;
+      if (rmsProfile.length > 5) {
+        // Find average energy of the track
+        const avgEnergy = rmsProfile.reduce((a, b) => a + b, 0) / rmsProfile.length;
+        
+        // Find the intro transition boundary in the first 20% of the song
+        const introLimitIdx = Math.floor(rmsProfile.length * 0.20);
+        let introBoundary = silenceStart;
+        for (let i = 0; i < introLimitIdx; i++) {
+          if (rmsProfile[i] > avgEnergy * 0.4) {
+            introBoundary = silenceStart + (i * windowSize);
+            break;
+          }
+        }
+
+        // Find the outro transition boundary in the last 20% of the song
+        const outroStartIdx = Math.floor(rmsProfile.length * 0.80);
+        let outroBoundary = silenceEnd;
+        for (let i = rmsProfile.length - 1; i >= outroStartIdx; i--) {
+          if (rmsProfile[i] > avgEnergy * 0.3) {
+            outroBoundary = silenceStart + (i * windowSize);
+            break;
+          }
+        }
+
+        // Apply crops based on indices
+        if (list.length === 1) {
+          start = silenceStart;
+          end = silenceEnd;
+        } else if (idx === 0) {
+          start = silenceStart;
+          end = outroBoundary;
+        } else if (idx === list.length - 1) {
+          start = introBoundary;
+          end = silenceEnd;
+        } else {
+          start = introBoundary;
+          end = outroBoundary;
+        }
       } else {
-        // Middle tracks: trim both intro and outro
-        start = silenceStart + cropAmount;
-        end = silenceEnd - cropAmount;
+        // Fallback: 10% crop (capped at 15s)
+        const cropAmount = Math.min(15, activeDuration * 0.1);
+        if (list.length === 1) {
+          start = silenceStart;
+          end = silenceEnd;
+        } else if (idx === 0) {
+          start = silenceStart;
+          end = silenceEnd - cropAmount;
+        } else if (idx === list.length - 1) {
+          start = silenceStart + cropAmount;
+          end = silenceEnd;
+        } else {
+          start = silenceStart + cropAmount;
+          end = silenceEnd - cropAmount;
+        }
       }
 
-      // Fallback
-      if (end <= start + 2) {
+      // --- GUARANTEE / SAFEGUARD ---
+      // We want to make sure we don't crop the track too short!
+      // A professional DJ mix keeps at least 75% of the song.
+      const minPlayDuration = activeDuration * 0.75;
+      let currentPlayDuration = end - start;
+
+      if (currentPlayDuration < minPlayDuration) {
+        const deficit = minPlayDuration - currentPlayDuration;
+        if (idx === 0) {
+          end = Math.min(silenceEnd, end + deficit);
+        } else if (idx === list.length - 1) {
+          start = Math.max(silenceStart, start - deficit);
+        } else {
+          start = Math.max(silenceStart, start - deficit / 2);
+          end = Math.min(silenceEnd, end + deficit / 2);
+        }
+      }
+
+      // Hard limits: cap intro trim at 25s, outro trim at 25s to prevent massive loss
+      if (start - silenceStart > 25) start = silenceStart + 25;
+      if (silenceEnd - end > 25) end = silenceEnd - 25;
+
+      // Final bounds check
+      if (end <= start + 5) {
         start = silenceStart;
         end = silenceEnd;
       }
 
-      console.log(`[AutoCut] ${track.name}: Original=${duration.toFixed(2)}s, Silence=[${silenceStart.toFixed(2)}s - ${silenceEnd.toFixed(2)}s], Cut=[${start.toFixed(2)}s - ${end.toFixed(2)}s]`);
+      console.log(`[AutoCut Smart] ${track.name}: Original=${duration.toFixed(2)}s, Silence=[${silenceStart.toFixed(2)}s - ${silenceEnd.toFixed(2)}s], SmartCut=[${start.toFixed(2)}s - ${end.toFixed(2)}s] (Kept ${(100 * (end - start) / duration).toFixed(0)}%)`);
 
       return {
         ...track,
