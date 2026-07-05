@@ -1507,12 +1507,18 @@ export default function MixingPage() {
               👑 VIP PERMANENT
             </span>
           ) : user && user.mixingExpiry && new Date(user.mixingExpiry) > new Date() ? (
-            <span className="badge badge-info" style={{ fontSize: '0.65rem', marginTop: 4, background: 'rgba(56,189,248,0.15)', color: 'var(--accent)', border: '1px solid rgba(56,189,248,0.3)', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
-              ⏱️ VIP ACTIVE ({dbTimeLeftStr})
-            </span>
+            user.mixingIsTrialActive ? (
+              <span className="badge badge-success" style={{ fontSize: '0.65rem', marginTop: 4, background: 'rgba(16,185,129,0.15)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.3)', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
+                ⏱️ FREE TRIAL 1 DAY
+              </span>
+            ) : (
+              <span className="badge badge-info" style={{ fontSize: '0.65rem', marginTop: 4, background: 'rgba(56,189,248,0.15)', color: 'var(--accent)', border: '1px solid rgba(56,189,248,0.3)', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
+                ⏱️ VIP ACTIVE ({dbTimeLeftStr})
+              </span>
+            )
           ) : licenseInfo && licenseInfo.trial ? (
             <span className="badge badge-success" style={{ fontSize: '0.65rem', marginTop: 4, background: 'rgba(16,185,129,0.15)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.3)', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
-              ⏱️ FREE TRIAL: {trialTimeLeft} LEFT
+              ⏱️ FREE TRIAL 1 DAY
             </span>
           ) : (
             <span className="badge badge-info" style={{ fontSize: '0.62rem', marginTop: 4 }}>

@@ -19,6 +19,7 @@ export async function POST(request) {
 
     // Set trial claimed to true and grant 1-day access in DB
     user.mixingTrialClaimed = true;
+    user.mixingIsTrialActive = true;
     user.mixingExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
     user.mixingIsPermanent = false;
     await user.save();

@@ -72,6 +72,7 @@ export async function GET(request) {
         mixingExpiry: user.mixingExpiry,
         mixingIsPermanent: user.mixingIsPermanent || false,
         mixingTrialClaimed: user.mixingTrialClaimed || false,
+        mixingIsTrialActive: user.mixingIsTrialActive || false,
         createdAt: user.createdAt, 
         lastLogin: user.lastLogin,
       },

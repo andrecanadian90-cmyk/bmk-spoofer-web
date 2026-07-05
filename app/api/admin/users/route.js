@@ -53,6 +53,7 @@ export async function PATCH(request) {
       }
     }
     else if (action === 'set_mixing_duration') {
+      update.mixingIsTrialActive = false;
       if (duration === '7_days') {
         update.mixingExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
         update.mixingIsPermanent = false;
