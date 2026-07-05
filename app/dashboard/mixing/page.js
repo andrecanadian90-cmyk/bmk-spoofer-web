@@ -733,11 +733,12 @@ export default function MixingPage() {
     setAutomixStep(0);
 
     const runSteps = async () => {
-      // Simulate DSP solver stages
+      // Simulate DSP solver stages with 1200ms delay for clear visual feedback
       for (let step = 1; step <= 5; step++) {
-        await new Promise(r => setTimeout(r, 600));
+        await new Promise(r => setTimeout(r, 1200));
         setAutomixStep(step);
       }
+      await new Promise(r => setTimeout(r, 800));
 
       // Global Path Optimization Sort: Try every song as the starting song and pick the smoothest chain
       const originalList = [...playlist];
@@ -1707,10 +1708,63 @@ export default function MixingPage() {
       {/* Automix loading overlay */}
       {automixing && (
         <div className="modal-overlay">
-          <div className="modal" style={{ textAlign: 'center', maxWidth: 360 }}>
+          <div className="modal" style={{ textAlign: 'center', maxWidth: 380, padding: 24 }}>
             <span style={{ fontSize: '2.5rem', display: 'block', animation: 'spinGlow 2s linear infinite', marginBottom: 12 }}>🔄</span>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: 8 }}>BERNADA MIX ENGINE</h4>
-            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 16 }}>Solving Camelot key progression...</p>
+            <h4 style={{ fontSize: '1rem', fontWeight: 900, marginBottom: 8, letterSpacing: '0.5px' }}>BERNADA MIX ENGINE</h4>
+            
+            {/* Dynamic Status Subtitle */}
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: 20, minHeight: 18, fontWeight: 600 }}>
+              {automixStep === 0 && (language === 'id' ? 'Menganalisis spektrum & keheningan audio...' : 'Scanning audio spectrum & silence...')}
+              {automixStep === 1 && (language === 'id' ? 'Menghitung jalur harmoni optimal...' : 'Solving optimal harmonic path...')}
+              {automixStep === 2 && (language === 'id' ? 'Menyelaraskan pitch & kunci nada...' : 'Syncing pitch & Camelot keys...')}
+              {automixStep === 3 && (language === 'id' ? 'Memotong ketukan birama (160 Beats)...' : 'Trimming beat phrasing (160 Beats)...')}
+              {automixStep === 4 && (language === 'id' ? 'Menghubungkan transisi & ramping tempo...' : 'Aligning transitions & BPM ramping...')}
+              {automixStep === 5 && (language === 'id' ? 'Menyelesaikan mixer DSP...' : 'Finalizing DSP mixer...')}
+            </p>
+
+            {/* Checklist of DSP Stages */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left', margin: '0 0 20px', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
+              {[
+                { id: 1, label: language === 'id' ? 'Analisis Sinyal & Keheningan' : 'Signal Analysis & Silence Detection', icon: '🔍' },
+                { id: 2, label: language === 'id' ? 'Optimasi Jalur Camelot Wheel' : 'Global Camelot Path Optimization', icon: '🎼' },
+                { id: 3, label: language === 'id' ? 'Penyelarasan Kunci (Key Sync)' : 'Harmonic Key Sync (Detune)', icon: '⚙️' },
+                { id: 4, label: language === 'id' ? 'Phrasing & Penyelarasan Bar' : '16-Beat Phrase & Bar Alignment', icon: '✂️' },
+                { id: 5, label: language === 'id' ? 'Ramping Tempo & Crossfade EQ' : 'BPM Ramping & EQ Crossover', icon: '🎚️' }
+              ].map((step) => {
+                const isCompleted = automixStep >= step.id;
+                const isCurrent = automixStep === step.id - 1;
+                return (
+                  <div 
+                    key={step.id} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between',
+                      fontSize: '0.72rem',
+                      color: isCompleted ? 'var(--text-primary)' : isCurrent ? 'var(--accent)' : 'var(--text-muted)',
+                      fontWeight: isCurrent || isCompleted ? 700 : 400,
+                      opacity: isCompleted || isCurrent ? 1.0 : 0.4,
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span>{step.icon}</span>
+                      <span>{step.label}</span>
+                    </div>
+                    <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center' }}>
+                      {isCompleted ? (
+                        <span style={{ color: 'var(--success)' }}>✅</span>
+                      ) : isCurrent ? (
+                        <span style={{ display: 'inline-block', animation: 'spinGlow 1.5s linear infinite' }}>⏳</span>
+                      ) : (
+                        <span style={{ color: 'var(--border)' }}>○</span>
+                      )}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
             <div className="progress-wrap" style={{ height: 6 }}>
               <div className="progress-fill" style={{ width: `${(automixStep / 5) * 100}%` }} />
             </div>
