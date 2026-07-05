@@ -250,6 +250,17 @@ export default function MixingPage() {
     return () => clearInterval(interval);
   }, [licenseInfo, user, refreshUser, language]);
 
+  // Security Check: Clear local storage spoofing attempts when DB records expired status
+  useEffect(() => {
+    if (mounted && user) {
+      const hasDbAccess = user.mixingIsPermanent || (user.mixingExpiry && new Date(user.mixingExpiry) > new Date());
+      if (!hasDbAccess && user.mixingTrialClaimed) {
+        localStorage.removeItem('bmk_mixing_license');
+        setLicenseInfo(null);
+      }
+    }
+  }, [mounted, user]);
+
   // Cleanup audio nodes on unmount
   useEffect(() => {
     return () => {
@@ -1135,9 +1146,26 @@ export default function MixingPage() {
 
     initAudioContext();
     setExporting(true);
-    setExportProgress(10);
+    setExportProgress(5);
 
     try {
+      // Server-side security check before rendering and exporting
+      const verifyRes = await fetch('/api/auth/verify-mixing-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success) {
+        showToast(verifyData.error || 'Access Denied', 'error');
+        setExporting(false);
+        setExportProgress(0);
+        return;
+      }
+
+      setExportProgress(10);
       const totalDuration = getMixTotalDuration();
       const sampleRate = audioCtxRef.current.sampleRate;
       const OfflineCtxClass = window.OfflineAudioContext || window.webkitOfflineAudioContext;
