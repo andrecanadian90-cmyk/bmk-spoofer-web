@@ -881,7 +881,7 @@ export default function MixingPage() {
       // Global Path Optimization Sort: Try every song as the starting song and pick the smoothest chain
       const originalList = [...playlist];
       let bestChain = [];
-      let bestGlobalScore = -999999;
+      let bestGlobalScore = -Infinity;
 
       for (let startIdx = 0; startIdx < originalList.length; startIdx++) {
         const unvisited = [...originalList];
@@ -892,7 +892,7 @@ export default function MixingPage() {
 
         while (unvisited.length > 0) {
           let bestCandidateIdx = -1;
-          let bestCandidateScore = -100;
+          let bestCandidateScore = -Infinity;
 
           for (let i = 0; i < unvisited.length; i++) {
             const candidate = unvisited[i];
