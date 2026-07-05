@@ -427,7 +427,7 @@ export default function MixingPage() {
 
   const getTransitionDuration = (trackA, trackB) => {
     const avgBpm = ((trackA.bpm || 120) + (trackB.bpm || 120)) / 2;
-    return (32 / avgBpm) * 60; // 32 beats (8 bars)
+    return (16 / avgBpm) * 60; // 16 beats (4 bars) - Optimized for Setlist transition, avoiding long mashup overlaps
   };
 
   const getMixTotalDuration = (list = playlist) => {
