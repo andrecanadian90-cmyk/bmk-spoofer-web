@@ -137,6 +137,7 @@ export default function MixingPage() {
 
   // License State
   const [licenseInfo, setLicenseInfo] = useState(null);
+  const [trialTimeLeft, setTrialTimeLeft] = useState('');
 
   // Mixer State
   const [tracks, setTracks] = useState([]);
@@ -207,6 +208,33 @@ export default function MixingPage() {
       }
     }
   }, []);
+
+  // Free Trial Countdown Timer
+  useEffect(() => {
+    if (!licenseInfo || !licenseInfo.trial) return;
+
+    const updateCountdown = () => {
+      const expiryTime = new Date(licenseInfo.expiry).getTime();
+      const diff = expiryTime - Date.now();
+
+      if (diff <= 0) {
+        localStorage.removeItem('bmk_mixing_license');
+        setLicenseInfo(null);
+        showToast(language === 'id' ? 'Free Trial 1 Hari Anda telah kedaluwarsa!' : 'Your 1-Day Free Trial has expired!', 'error');
+        return;
+      }
+
+      const hrs = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setTrialTimeLeft(`${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [licenseInfo, language]);
 
   // Cleanup audio nodes on unmount
   useEffect(() => {
@@ -1382,9 +1410,15 @@ export default function MixingPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
           <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>{t('title')}</h2>
-          <span className="badge badge-info" style={{ fontSize: '0.62rem', marginTop: 4 }}>
-            {licenseInfo.demo ? 'DEMO MODE' : t('unlimitedCoins')}
-          </span>
+          {licenseInfo.trial ? (
+            <span className="badge badge-success" style={{ fontSize: '0.65rem', marginTop: 4, background: 'rgba(16,185,129,0.15)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.3)', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
+              ⏱️ FREE TRIAL: {trialTimeLeft} LEFT
+            </span>
+          ) : (
+            <span className="badge badge-info" style={{ fontSize: '0.62rem', marginTop: 4 }}>
+              {t('unlimitedCoins')}
+            </span>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline btn-sm" onClick={() => setShowHelp(true)}>
