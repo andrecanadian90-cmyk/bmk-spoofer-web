@@ -100,28 +100,28 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // Enforce weekly usage limit ONLY for BASIC rank
+    // Enforce daily usage limit ONLY for BASIC rank
     if (isBasic) {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const oneDayAgo = new Date();
+      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
       const successfulBypassesCount = await SpoofLog.countDocuments({
         userId: user._id,
         status: 'success',
-        createdAt: { $gte: oneWeekAgo }
+        createdAt: { $gte: oneDayAgo }
       });
       
       if (successfulBypassesCount >= 10) {
         return NextResponse.json({
           success: false,
-          error: 'Batas penggunaan rank BASIC tercapai (Maksimal 10x bypass per minggu untuk seluruh tipe aset). Silakan lakukan top-up minimal 50 koin untuk meningkatkan pangkat ke PREMIUM dan menghapus batasan ini!'
+          error: 'Batas penggunaan rank BASIC tercapai (Maksimal 10x bypass per hari untuk seluruh tipe aset). Silakan lakukan top-up minimal 50 koin untuk meningkatkan pangkat ke PREMIUM dan menghapus batasan ini!'
         }, { status: 403 });
       }
 
       if (successfulBypassesCount + assets.length > 10) {
         return NextResponse.json({
           success: false,
-          error: `Jumlah aset melebihi batas penggunaan mingguan rank BASIC Anda. Sisa slot bypass rank BASIC minggu ini: ${10 - successfulBypassesCount} aset.`
+          error: `Jumlah aset melebihi batas penggunaan harian rank BASIC Anda. Sisa slot bypass rank BASIC hari ini: ${10 - successfulBypassesCount} aset.`
         }, { status: 403 });
       }
     }

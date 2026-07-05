@@ -150,7 +150,7 @@ const getRankDetails = (role = 'user', totalTopUp = 0, lang = 'id') => {
   if (totalTopUp >= 50) {
     return { name: 'PREMIUM', color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.25)', nextRank: 'EXCLUSIVE', coinsNeeded: 500 - totalTopUp, perk: isEn ? 'No bypass limits + Priority queue above Basic.' : 'Tidak ada batasan spoof + Prioritas antrean di atas Basic.' };
   }
-  return { name: 'BASIC', color: '#6b7280', bg: 'rgba(107, 114, 128, 0.08)', border: 'rgba(107, 114, 128, 0.15)', nextRank: 'PREMIUM', coinsNeeded: 50 - totalTopUp, perk: isEn ? 'Limit of 10x bypasses per week (all asset types combined) + Standard queue.' : 'Batas 10x spoof/bypass per minggu (semua tipe aset digabung) + Antrean standard.' };
+  return { name: 'BASIC', color: '#6b7280', bg: 'rgba(107, 114, 128, 0.08)', border: 'rgba(107, 114, 128, 0.15)', nextRank: 'PREMIUM', coinsNeeded: 50 - totalTopUp, perk: isEn ? 'Limit of 10x bypasses per day (all asset types combined) + Standard queue.' : 'Batas 10x spoof/bypass per hari (semua tipe aset digabung) + Antrean standard.' };
 };
 
 export default function DashboardPage() {
