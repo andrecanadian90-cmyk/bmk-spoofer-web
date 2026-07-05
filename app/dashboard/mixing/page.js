@@ -697,7 +697,8 @@ export default function MixingPage() {
     gainNode.connect(analyserRef.current);
 
     const offset = Math.max(0, playbackTime - track.timelineStart);
-    sourceNode.start(0, track.clipStart + offset);
+    const durationToPlay = Math.max(0, (track.clipEnd - track.clipStart) - offset);
+    sourceNode.start(0, track.clipStart + offset, durationToPlay);
 
     activeSourcesRef.current[track.id] = { sourceNode, gainNode, lowFilterNode };
   };
