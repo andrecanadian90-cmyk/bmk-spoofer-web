@@ -534,15 +534,21 @@ export default function MixingPage() {
       if (silenceEnd <= silenceStart) silenceEnd = duration;
       const activeDuration = silenceEnd - silenceStart;
 
-      // Perfect Cut: Target duration is strictly 70 seconds for a highly professional quick-mix
-      const targetDuration = 70;
+      // --- BPM & PHRASE ALIGNED CUTTING ---
+      const bpm = parseFloat(track.bpm) || 120;
+      const beatDuration = 60 / bpm;
+      
+      // Target: 160 beats (5 phrases of 32 beats) representing about 65-80s of core playing time
+      const targetBeats = 160; 
+      const targetDuration = targetBeats * beatDuration;
 
       let start = silenceStart;
       let end = silenceEnd;
 
       if (rmsProfile.length > 5 && activeDuration > targetDuration) {
-        // We want to find the window of length (targetDuration - 15) representing the core climax
-        const climaxDuration = targetDuration - 15; // 55 seconds of chorus/drop
+        // Climax size: target beats minus 32 beats build-up (128 beats of drop/chorus)
+        const climaxBeats = targetBeats - 32; 
+        const climaxDuration = climaxBeats * beatDuration;
         const windowCount = Math.round(climaxDuration / windowSize);
         let maxEnergy = -1;
         let bestIdx = 0;
@@ -560,29 +566,45 @@ export default function MixingPage() {
 
         const climaxStart = silenceStart + (bestIdx * windowSize);
         
-        // Start 15 seconds before the climax (for the build-up/verse transition)
-        start = Math.max(silenceStart, climaxStart - 15);
+        // Raw start: 32 beats (approx 13-15s) before the climax to capture the build-up phase
+        const rawStart = climaxStart - (32 * beatDuration);
+        const relativeStart = Math.max(0, rawStart - silenceStart);
+        
+        // Align to the nearest 16-beat phrase boundary from the start of the song
+        const startBeats = relativeStart / beatDuration;
+        const alignedStartBeats = Math.round(startBeats / 16) * 16;
+        
+        start = silenceStart + (alignedStartBeats * beatDuration);
         end = start + targetDuration;
 
-        // Bounds check to keep within active audio area
+        // Bounds check to keep within active audio limits
         if (end > silenceEnd) {
           end = silenceEnd;
+          // Align end to nearest 16-beat boundary
+          const totalActiveBeats = (silenceEnd - silenceStart) / beatDuration;
+          const alignedEndBeats = Math.floor(totalActiveBeats / 16) * 16;
+          end = silenceStart + (alignedEndBeats * beatDuration);
           start = Math.max(silenceStart, end - targetDuration);
         }
       } else {
-        // Fallback for short tracks: trim intro/outro by 10%
-        const cropAmount = activeDuration * 0.10;
-        start = silenceStart + cropAmount;
-        end = silenceEnd - cropAmount;
+        // Fallback for very short tracks: align boundaries to 16-beat grid
+        const totalActiveBeats = activeDuration / beatDuration;
+        if (totalActiveBeats > 32) {
+          start = silenceStart + (16 * beatDuration);
+          end = silenceEnd - (16 * beatDuration);
+        } else {
+          start = silenceStart;
+          end = silenceEnd;
+        }
       }
 
-      // Final bounds check
+      // Final sanity check
       if (end <= start + 5) {
         start = silenceStart;
         end = silenceEnd;
       }
 
-      console.log(`[AutoCut Perfect] ${track.name}: Original=${duration.toFixed(2)}s, Silence=[${silenceStart.toFixed(2)}s - ${silenceEnd.toFixed(2)}s], PerfectCut=[${start.toFixed(2)}s - ${end.toFixed(2)}s] (Kept ${(100 * (end - start) / duration).toFixed(0)}%)`);
+      console.log(`[AutoCut PerfectPhrase] ${track.name} (${bpm} BPM): Original=${duration.toFixed(2)}s, Silence=[${silenceStart.toFixed(2)}s - ${silenceEnd.toFixed(2)}s], PhraseCut=[${start.toFixed(2)}s - ${end.toFixed(2)}s] (Length: ${((end - start) / beatDuration).toFixed(0)} beats, Kept ${(100 * (end - start) / duration).toFixed(0)}%)`);
 
       return {
         ...track,
