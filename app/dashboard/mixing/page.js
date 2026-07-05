@@ -534,50 +534,53 @@ export default function MixingPage() {
       if (silenceEnd <= silenceStart) silenceEnd = duration;
       const activeDuration = silenceEnd - silenceStart;
 
+      // Target playback duration for the quick-mix (approx 58% of song)
+      // Caps: min 80s, max 180s
+      const targetDuration = Math.min(180, Math.max(80, activeDuration * 0.58));
+
       let start = silenceStart;
       let end = silenceEnd;
 
-      if (rmsProfile.length > 5) {
-        // Find average energy of the track
-        const avgEnergy = rmsProfile.reduce((a, b) => a + b, 0) / rmsProfile.length;
-        
-        // Find the intro transition boundary in the first 20% of the song
-        const introLimitIdx = Math.floor(rmsProfile.length * 0.20);
-        let introBoundary = silenceStart;
-        for (let i = 0; i < introLimitIdx; i++) {
-          if (rmsProfile[i] > avgEnergy * 0.4) {
-            introBoundary = silenceStart + (i * windowSize);
-            break;
+      if (rmsProfile.length > 5 && activeDuration > targetDuration) {
+        const windowCount = Math.round(targetDuration / windowSize);
+        let maxEnergy = -1;
+        let bestIdx = 0;
+
+        // Slide window of length `windowCount` to find the peak energy region (climax)
+        for (let i = 0; i <= rmsProfile.length - windowCount; i++) {
+          let energySum = 0;
+          for (let j = 0; j < windowCount; j++) {
+            energySum += rmsProfile[i + j];
+          }
+          if (energySum > maxEnergy) {
+            maxEnergy = energySum;
+            bestIdx = i;
           }
         }
 
-        // Find the outro transition boundary in the last 20% of the song
-        const outroStartIdx = Math.floor(rmsProfile.length * 0.80);
-        let outroBoundary = silenceEnd;
-        for (let i = rmsProfile.length - 1; i >= outroStartIdx; i--) {
-          if (rmsProfile[i] > avgEnergy * 0.3) {
-            outroBoundary = silenceStart + (i * windowSize);
-            break;
-          }
-        }
+        const bestStart = silenceStart + (bestIdx * windowSize);
+        const bestEnd = bestStart + targetDuration;
 
-        // Apply crops based on indices
+        // DJ transition-aware cropping based on playlist index
         if (list.length === 1) {
           start = silenceStart;
           end = silenceEnd;
         } else if (idx === 0) {
+          // First track: starts at the beginning (intro included), crops at the end of peak energy
           start = silenceStart;
-          end = outroBoundary;
+          end = Math.min(silenceEnd, bestEnd);
         } else if (idx === list.length - 1) {
-          start = introBoundary;
+          // Last track: starts at peak energy, plays to the natural end (fadeout included)
+          start = Math.max(silenceStart, bestStart);
           end = silenceEnd;
         } else {
-          start = introBoundary;
-          end = outroBoundary;
+          // Middle tracks: plays only the peak energy window
+          start = Math.max(silenceStart, bestStart);
+          end = Math.min(silenceEnd, bestEnd);
         }
       } else {
-        // Fallback: 10% crop (capped at 15s)
-        const cropAmount = Math.min(15, activeDuration * 0.1);
+        // Fallback: 15% crop from start/end
+        const cropAmount = activeDuration * 0.15;
         if (list.length === 1) {
           start = silenceStart;
           end = silenceEnd;
@@ -593,14 +596,10 @@ export default function MixingPage() {
         }
       }
 
-      // --- GUARANTEE / SAFEGUARD ---
-      // We want to make sure we don't crop the track too short!
-      // A professional DJ mix keeps at least 75% of the song.
-      const minPlayDuration = activeDuration * 0.75;
-      let currentPlayDuration = end - start;
-
-      if (currentPlayDuration < minPlayDuration) {
-        const deficit = minPlayDuration - currentPlayDuration;
+      // Hard safeguard: make sure each song plays at least 45% of its length
+      const minPlayDuration = activeDuration * 0.45;
+      if (end - start < minPlayDuration) {
+        const deficit = minPlayDuration - (end - start);
         if (idx === 0) {
           end = Math.min(silenceEnd, end + deficit);
         } else if (idx === list.length - 1) {
@@ -611,17 +610,13 @@ export default function MixingPage() {
         }
       }
 
-      // Hard limits: cap intro trim at 25s, outro trim at 25s to prevent massive loss
-      if (start - silenceStart > 25) start = silenceStart + 25;
-      if (silenceEnd - end > 25) end = silenceEnd - 25;
-
       // Final bounds check
       if (end <= start + 5) {
         start = silenceStart;
         end = silenceEnd;
       }
 
-      console.log(`[AutoCut Smart] ${track.name}: Original=${duration.toFixed(2)}s, Silence=[${silenceStart.toFixed(2)}s - ${silenceEnd.toFixed(2)}s], SmartCut=[${start.toFixed(2)}s - ${end.toFixed(2)}s] (Kept ${(100 * (end - start) / duration).toFixed(0)}%)`);
+      console.log(`[AutoCut SmartPeak] ${track.name}: Original=${duration.toFixed(2)}s, Silence=[${silenceStart.toFixed(2)}s - ${silenceEnd.toFixed(2)}s], SmartCut=[${start.toFixed(2)}s - ${end.toFixed(2)}s] (Kept ${(100 * (end - start) / duration).toFixed(0)}%)`);
 
       return {
         ...track,
