@@ -149,6 +149,7 @@ export default function MixingPage() {
   const [deckRightFader, setDeckRightFader] = useState(1.0);
   const [transitionStyle, setTransitionStyle] = useState('smooth');
   const [autoCutMode, setAutoCutMode] = useState('high');
+  const [enableAutoCut, setEnableAutoCut] = useState(true);
   const [editingTrackId, setEditingTrackId] = useState(null);
   const [previewingTrackId, setPreviewingTrackId] = useState(null);
   const previewSourceRef = useRef(null);
@@ -883,7 +884,7 @@ export default function MixingPage() {
 
       const ordered = bestChain;
 
-      const cutOrdered = performAutoCut(ordered);
+      const cutOrdered = enableAutoCut ? performAutoCut(ordered) : ordered.map(t => ({ ...t }));
       setPlaylist(cutOrdered);
       recalculateTimeline(cutOrdered);
       setAutomixing(false);
@@ -1861,18 +1862,33 @@ export default function MixingPage() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <label style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Auto-Cut Mode</label>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Mix Strategy</label>
               <select 
                 className="input" 
                 style={{ padding: '6px 10px', fontSize: '0.72rem', height: 'auto' }}
-                value={autoCutMode}
-                onChange={(e) => setAutoCutMode(e.target.value)}
+                value={enableAutoCut ? 'auto' : 'keep'}
+                onChange={(e) => setEnableAutoCut(e.target.value === 'auto')}
               >
-                <option value="high">🔥 High Energy (Chorus/Drop)</option>
-                <option value="low">🍃 Low Energy (Intro/Verse)</option>
-                <option value="balanced">🎼 Balanced (Melodic Bridge)</option>
+                <option value="auto">🔄 Auto-Cut Tracks (Smart Crop)</option>
+                <option value="keep">🔗 Keep Current Cut (Merge Only)</option>
               </select>
             </div>
+
+            {enableAutoCut && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-secondary)' }}>Auto-Cut Mode</label>
+                <select 
+                  className="input" 
+                  style={{ padding: '6px 10px', fontSize: '0.72rem', height: 'auto' }}
+                  value={autoCutMode}
+                  onChange={(e) => setAutoCutMode(e.target.value)}
+                >
+                  <option value="high">🔥 High Energy (Chorus/Drop)</option>
+                  <option value="low">🍃 Low Energy (Intro/Verse)</option>
+                  <option value="balanced">🎼 Balanced (Melodic Bridge)</option>
+                </select>
+              </div>
+            )}
 
             <button 
               className="btn btn-primary" 
@@ -1962,12 +1978,16 @@ export default function MixingPage() {
             {/* Dynamic Status Subtitle */}
             <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: 20, minHeight: 18, fontWeight: 600 }}>
               {automixStep === 0 && (language === 'id' ? 'Memulai mesin mixer DSP...' : 'Starting DSP mixer engine...')}
-              {automixStep === 1 && (language === 'id' ? 'Memindai batas keheningan lagu...' : 'Scanning leading & trailing silence...')}
+              {automixStep === 1 && (enableAutoCut 
+                ? (language === 'id' ? 'Memindai batas keheningan lagu...' : 'Scanning leading & trailing silence...')
+                : (language === 'id' ? 'Melewati pemindaian keheningan (Mode Gabung)...' : 'Bypassing silence scan (Merge Mode)...'))}
               {automixStep === 2 && (language === 'id' ? 'Menyamakan tingkat volume (Auto-Gain)...' : 'Normalizing track volume levels...')}
               {automixStep === 3 && (language === 'id' ? 'Menganalisis spektrum energi RMS...' : 'Profiling track RMS sound energy...')}
               {automixStep === 4 && (language === 'id' ? 'Mencari jalur harmoni Camelot...' : 'Solving optimal Camelot wheel path...')}
               {automixStep === 5 && (language === 'id' ? 'Penyelarasan pitch kunci (Key Sync)...' : 'Pitch transposing keys (Key Sync)...')}
-              {automixStep === 6 && (language === 'id' ? 'Mendeteksi letak klimaks Drop/Reff...' : 'Locating climax & chorus segments...')}
+              {automixStep === 6 && (enableAutoCut
+                ? (language === 'id' ? 'Mendeteksi letak klimaks Drop/Reff...' : 'Locating climax & chorus segments...')
+                : (language === 'id' ? 'Mempertahankan batas potongan manual...' : 'Preserving manual crop boundaries...'))}
               {automixStep === 7 && (language === 'id' ? 'Menyelaraskan ketukan ke Bar terdekat...' : 'Aligning beats to nearest 16-beat bars...')}
               {automixStep === 8 && (language === 'id' ? 'Mengunci tempo & sinkronisasi BPM...' : 'Locking tempo & dynamic BPM ramping...')}
               {automixStep === 9 && (language === 'id' ? 'Mengaktifkan master tempo pitch lock...' : 'Compensating pitch (Key Lock)...')}
@@ -1977,12 +1997,16 @@ export default function MixingPage() {
             {/* Checklist of DSP Stages */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left', margin: '0 0 20px', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid var(--border-subtle)' }}>
               {[
-                { id: 1, label: language === 'id' ? 'Silence & Noise Gate Scanning' : 'Silence & Noise Gate Scanning', icon: '🔍' },
+                { id: 1, label: enableAutoCut 
+                  ? (language === 'id' ? 'Silence & Noise Gate Scanning' : 'Silence & Noise Gate Scanning')
+                  : (language === 'id' ? 'Silence Scanning (Bypassed)' : 'Silence Scanning (Bypassed)'), icon: '🔍' },
                 { id: 2, label: language === 'id' ? 'Auto-Gain Loudness Normalization' : 'Auto-Gain Loudness Normalization', icon: '🎚️' },
                 { id: 3, label: language === 'id' ? 'RMS Sound Energy Profiling' : 'RMS Sound Energy Profiling', icon: '📊' },
                 { id: 4, label: language === 'id' ? 'Global Camelot Path Optimization' : 'Global Camelot Path Optimization', icon: '🎼' },
                 { id: 5, label: language === 'id' ? 'Harmonic Key Sync (Detune)' : 'Harmonic Key Sync (Detune)', icon: '⚙️' },
-                { id: 6, label: language === 'id' ? 'Climax & Energy Trimming' : 'Climax & Energy Trimming', icon: '✂️' },
+                { id: 6, label: enableAutoCut
+                  ? (language === 'id' ? 'Climax & Energy Trimming' : 'Climax & Energy Trimming')
+                  : (language === 'id' ? 'Climax Trimming (Bypassed - Keep Crop)' : 'Climax Trimming (Bypassed - Keep Crop)'), icon: '✂️' },
                 { id: 7, label: language === 'id' ? '16-Beat Phrase & Bar Alignment' : '16-Beat Phrase & Bar Alignment', icon: '📐' },
                 { id: 8, label: language === 'id' ? 'BPM Ramping & Tempo Match' : 'BPM Ramping & Tempo Match', icon: '📈' },
                 { id: 9, label: language === 'id' ? 'Master Tempo Key Lock (Pitch Lock)' : 'Master Tempo Key Lock (Pitch Lock)', icon: '🛡️' },
