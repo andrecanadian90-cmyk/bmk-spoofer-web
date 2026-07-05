@@ -475,47 +475,47 @@ export default function MixingPage() {
   const performAutoCut = (list) => {
     return list.map((track, idx) => {
       const buffer = track.buffer;
-      if (!buffer) return track;
-
-      const duration = buffer.duration;
+      const duration = track.duration || (buffer ? buffer.duration : 0);
       let silenceStart = 0;
       let silenceEnd = duration;
 
-      try {
-        const data = buffer.getChannelData(0);
-        const sampleRate = buffer.sampleRate;
-        const checkLength = data.length;
-        const step = Math.floor(sampleRate * 0.1); // 100ms steps
+      if (buffer) {
+        try {
+          const data = buffer.getChannelData(0);
+          const sampleRate = buffer.sampleRate;
+          const checkLength = data.length;
+          const step = Math.floor(sampleRate * 0.1); // 100ms steps
 
-        // Scan leading silence
-        for (let i = 0; i < checkLength; i += step) {
-          let rms = 0;
-          const end = Math.min(checkLength, i + step);
-          for (let j = i; j < end; j++) {
-            rms += data[j] * data[j];
+          // Scan leading silence
+          for (let i = 0; i < checkLength; i += step) {
+            let rms = 0;
+            const end = Math.min(checkLength, i + step);
+            for (let j = i; j < end; j++) {
+              rms += data[j] * data[j];
+            }
+            rms = Math.sqrt(rms / (end - i));
+            if (rms > 0.005) {
+              silenceStart = i / sampleRate;
+              break;
+            }
           }
-          rms = Math.sqrt(rms / (end - i));
-          if (rms > 0.005) {
-            silenceStart = i / sampleRate;
-            break;
-          }
-        }
 
-        // Scan trailing silence
-        for (let i = checkLength - 1; i >= 0; i -= step) {
-          let rms = 0;
-          const start = Math.max(0, i - step);
-          for (let j = start; j < i; j++) {
-            rms += data[j] * data[j];
+          // Scan trailing silence
+          for (let i = checkLength - 1; i >= 0; i -= step) {
+            let rms = 0;
+            const start = Math.max(0, i - step);
+            for (let j = start; j < i; j++) {
+              rms += data[j] * data[j];
+            }
+            rms = Math.sqrt(rms / (i - start));
+            if (rms > 0.005) {
+              silenceEnd = i / sampleRate;
+              break;
+            }
           }
-          rms = Math.sqrt(rms / (i - start));
-          if (rms > 0.005) {
-            silenceEnd = i / sampleRate;
-            break;
-          }
+        } catch (e) {
+          console.warn('Silence scanning failed:', e);
         }
-      } catch (e) {
-        console.warn('Silence scanning failed:', e);
       }
 
       if (silenceEnd <= silenceStart) silenceEnd = duration;
@@ -549,6 +549,8 @@ export default function MixingPage() {
         start = silenceStart;
         end = silenceEnd;
       }
+
+      console.log(`[AutoCut] ${track.name}: Original=${duration.toFixed(2)}s, Silence=[${silenceStart.toFixed(2)}s - ${silenceEnd.toFixed(2)}s], Cut=[${start.toFixed(2)}s - ${end.toFixed(2)}s]`);
 
       return {
         ...track,
