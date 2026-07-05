@@ -130,7 +130,7 @@ const ASSET_TYPES = {
 };
 
 export default function MixingPage() {
-  const { token, user } = useAuth();
+  const { token, user, refreshUser } = useAuth();
   const { showToast } = useToast();
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
@@ -209,32 +209,46 @@ export default function MixingPage() {
     }
   }, []);
 
-  // Free Trial Countdown Timer
+  // Free Trial & VIP Database Expiry Countdown Timer
   useEffect(() => {
-    if (!licenseInfo || !licenseInfo.trial) return;
+    if (user && user.mixingIsPermanent) return;
 
     const updateCountdown = () => {
-      const expiryTime = new Date(licenseInfo.expiry).getTime();
-      const diff = expiryTime - Date.now();
-
-      if (diff <= 0) {
-        localStorage.removeItem('bmk_mixing_license');
-        setLicenseInfo(null);
-        showToast(language === 'id' ? 'Free Trial 1 Hari Anda telah kedaluwarsa!' : 'Your 1-Day Free Trial has expired!', 'error');
-        return;
+      // 1. Check database VIP expiry first
+      if (user && user.mixingExpiry) {
+        const expiryTime = new Date(user.mixingExpiry).getTime();
+        const diff = expiryTime - Date.now();
+        if (diff <= 0) {
+          refreshUser(); // Sync with server to update expired status
+          showToast(language === 'id' ? 'Lisensi VIP Anda telah habis!' : 'Your VIP License has expired!', 'error');
+          return;
+        }
       }
 
-      const hrs = Math.floor(diff / (1000 * 60 * 60));
-      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+      // 2. Check local Free Trial expiry
+      if (licenseInfo && licenseInfo.trial) {
+        const expiryTime = new Date(licenseInfo.expiry).getTime();
+        const diff = expiryTime - Date.now();
 
-      setTrialTimeLeft(`${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
+        if (diff <= 0) {
+          localStorage.removeItem('bmk_mixing_license');
+          setLicenseInfo(null);
+          showToast(language === 'id' ? 'Free Trial 1 Hari Anda telah kedaluwarsa!' : 'Your 1-Day Free Trial has expired!', 'error');
+          return;
+        }
+
+        const hrs = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        setTrialTimeLeft(`${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
+      }
     };
 
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [licenseInfo, language]);
+  }, [licenseInfo, user, refreshUser, language]);
 
   // Cleanup audio nodes on unmount
   useEffect(() => {
