@@ -898,8 +898,13 @@ export default function MixingPage() {
             const candidate = unvisited[i];
             const keyScore = getCamelotCompatibilityScore(current.key, candidate.key);
             const bpmDiff = Math.abs(current.bpm - candidate.bpm);
-            const bpmScore = Math.max(0, 10 - bpmDiff * 0.5);
-            const totalScore = keyScore * 10 + bpmScore;
+            
+            // Strong penalty for BPM difference to force a smooth tempo flow
+            const bpmScore = 100 - (bpmDiff * 6);
+            
+            // Key compatibility acts as a local optimizer (max 3 * 8 = 24 points)
+            const keyWeight = 8;
+            const totalScore = bpmScore + (keyScore * keyWeight);
 
             if (totalScore > bestCandidateScore) {
               bestCandidateScore = totalScore;
