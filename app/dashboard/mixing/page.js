@@ -421,18 +421,22 @@ export default function MixingPage() {
 
   const recalculateTimeline = (list = playlist) => {
     let clock = 0;
-    const updated = list.map((track, idx) => {
+    const updated = [];
+    
+    list.forEach((track, idx) => {
+      const clonedTrack = { ...track };
       if (idx === 0) {
-        track.timelineStart = 0;
-        clock = track.clipEnd - track.clipStart;
+        clonedTrack.timelineStart = 0;
+        clock = clonedTrack.clipEnd - clonedTrack.clipStart;
       } else {
-        const prev = list[idx - 1];
-        const overlap = getTransitionDuration(prev, track);
-        track.timelineStart = Math.max(0, clock - overlap);
-        clock = track.timelineStart + (track.clipEnd - track.clipStart);
+        const prev = updated[idx - 1];
+        const overlap = getTransitionDuration(prev, clonedTrack);
+        clonedTrack.timelineStart = Math.max(0, clock - overlap);
+        clock = clonedTrack.timelineStart + (clonedTrack.clipEnd - clonedTrack.clipStart);
       }
-      return track;
+      updated.push(clonedTrack);
     });
+    
     setPlaylist(updated);
   };
 
@@ -1176,7 +1180,14 @@ export default function MixingPage() {
                       <td style={{ fontSize: '0.72rem', padding: '10px 10px', color: color, fontWeight: 800 }}>
                         {track.key} {idx > 0 && (isCompatible ? '✅' : '⚠️')}
                       </td>
-                      <td style={{ fontSize: '0.72rem', padding: '10px 10px' }}>{formatTime(track.duration)}</td>
+                      <td style={{ fontSize: '0.72rem', padding: '10px 10px' }}>
+                        <div style={{ fontWeight: 700 }}>{formatTime(track.clipEnd - track.clipStart)}</div>
+                        {track.clipEnd - track.clipStart < track.duration && (
+                          <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>
+                            Original: {formatTime(track.duration)} (-{(track.duration - (track.clipEnd - track.clipStart)).toFixed(0)}s)
+                          </div>
+                        )}
+                      </td>
                       <td style={{ fontSize: '0.72rem', padding: '10px 10px', textAlign: 'right' }}>
                         <button className="btn btn-danger btn-sm" style={{ padding: '2px 6px', fontSize: '0.6rem' }} onClick={() => removeFromPlaylist(idx)}>
                           ✕
