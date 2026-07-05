@@ -703,31 +703,46 @@ export default function MixingPage() {
         setAutomixStep(step);
       }
 
-      // Sort logic
-      const unvisited = [...playlist];
-      const ordered = [];
-      let current = unvisited.shift();
-      ordered.push(current);
+      // Global Path Optimization Sort: Try every song as the starting song and pick the smoothest chain
+      const originalList = [...playlist];
+      let bestChain = [];
+      let bestGlobalScore = -999999;
 
-      while (unvisited.length > 0) {
-        let bestIdx = -1;
-        let bestScore = -100;
+      for (let startIdx = 0; startIdx < originalList.length; startIdx++) {
+        const unvisited = [...originalList];
+        const currentChain = [];
+        let current = unvisited.splice(startIdx, 1)[0];
+        currentChain.push(current);
+        let chainScore = 0;
 
-        for (let i = 0; i < unvisited.length; i++) {
-          const candidate = unvisited[i];
-          const keyScore = getCamelotCompatibilityScore(current.key, candidate.key);
-          const bpmDiff = Math.abs(current.bpm - candidate.bpm);
-          const bpmScore = Math.max(0, 10 - bpmDiff * 0.5);
-          const totalScore = keyScore * 10 + bpmScore;
+        while (unvisited.length > 0) {
+          let bestCandidateIdx = -1;
+          let bestCandidateScore = -100;
 
-          if (totalScore > bestScore) {
-            bestScore = totalScore;
-            bestIdx = i;
+          for (let i = 0; i < unvisited.length; i++) {
+            const candidate = unvisited[i];
+            const keyScore = getCamelotCompatibilityScore(current.key, candidate.key);
+            const bpmDiff = Math.abs(current.bpm - candidate.bpm);
+            const bpmScore = Math.max(0, 10 - bpmDiff * 0.5);
+            const totalScore = keyScore * 10 + bpmScore;
+
+            if (totalScore > bestCandidateScore) {
+              bestCandidateScore = totalScore;
+              bestCandidateIdx = i;
+            }
           }
+          chainScore += bestCandidateScore;
+          current = unvisited.splice(bestCandidateIdx, 1)[0];
+          currentChain.push(current);
         }
-        current = unvisited.splice(bestIdx, 1)[0];
-        ordered.push(current);
+
+        if (chainScore > bestGlobalScore) {
+          bestGlobalScore = chainScore;
+          bestChain = currentChain;
+        }
       }
+
+      const ordered = bestChain;
 
       const cutOrdered = performAutoCut(ordered);
       setPlaylist(cutOrdered);
