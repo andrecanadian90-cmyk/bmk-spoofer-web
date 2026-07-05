@@ -1218,7 +1218,18 @@ export default function MixingPage() {
       if (exportFormat === 'ogg') {
         if (!window.OggVorbisEncoder) throw new Error('OGG Encoder not loaded');
         const oggEncoder = new window.OggVorbisEncoder(sampleRate, 2, 0.7);
-        oggEncoder.encode([renderedBuffer.getChannelData(0), renderedBuffer.getChannelData(1)]);
+        const chan0 = renderedBuffer.getChannelData(0);
+        const chan1 = renderedBuffer.getChannelData(1);
+        const totalSamples = renderedBuffer.length;
+        const chunkSize = 16384;
+
+        for (let i = 0; i < totalSamples; i += chunkSize) {
+          const len = Math.min(chunkSize, totalSamples - i);
+          const chunk0 = chan0.subarray(i, i + len);
+          const chunk1 = chan1.subarray(i, i + len);
+          oggEncoder.encode([chunk0, chunk1]);
+        }
+
         blob = oggEncoder.finish();
         filename += '.ogg';
       } else {
