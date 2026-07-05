@@ -534,19 +534,19 @@ export default function MixingPage() {
       if (silenceEnd <= silenceStart) silenceEnd = duration;
       const activeDuration = silenceEnd - silenceStart;
 
-      // Target playback duration for the quick-mix (approx 58% of song)
-      // Caps: min 80s, max 180s
-      const targetDuration = Math.min(180, Math.max(80, activeDuration * 0.58));
+      // Perfect Cut: Target duration is strictly 70 seconds for a highly professional quick-mix
+      const targetDuration = 70;
 
       let start = silenceStart;
       let end = silenceEnd;
 
       if (rmsProfile.length > 5 && activeDuration > targetDuration) {
-        const windowCount = Math.round(targetDuration / windowSize);
+        // We want to find the window of length (targetDuration - 15) representing the core climax
+        const climaxDuration = targetDuration - 15; // 55 seconds of chorus/drop
+        const windowCount = Math.round(climaxDuration / windowSize);
         let maxEnergy = -1;
         let bestIdx = 0;
 
-        // Slide window of length `windowCount` to find the peak energy region (climax)
         for (let i = 0; i <= rmsProfile.length - windowCount; i++) {
           let energySum = 0;
           for (let j = 0; j < windowCount; j++) {
@@ -558,56 +558,22 @@ export default function MixingPage() {
           }
         }
 
-        const bestStart = silenceStart + (bestIdx * windowSize);
-        const bestEnd = bestStart + targetDuration;
+        const climaxStart = silenceStart + (bestIdx * windowSize);
+        
+        // Start 15 seconds before the climax (for the build-up/verse transition)
+        start = Math.max(silenceStart, climaxStart - 15);
+        end = start + targetDuration;
 
-        // DJ transition-aware cropping based on playlist index
-        if (list.length === 1) {
-          start = silenceStart;
+        // Bounds check to keep within active audio area
+        if (end > silenceEnd) {
           end = silenceEnd;
-        } else if (idx === 0) {
-          // First track: starts at the beginning (intro included), crops at the end of peak energy
-          start = silenceStart;
-          end = Math.min(silenceEnd, bestEnd);
-        } else if (idx === list.length - 1) {
-          // Last track: starts at peak energy, plays to the natural end (fadeout included)
-          start = Math.max(silenceStart, bestStart);
-          end = silenceEnd;
-        } else {
-          // Middle tracks: plays only the peak energy window
-          start = Math.max(silenceStart, bestStart);
-          end = Math.min(silenceEnd, bestEnd);
+          start = Math.max(silenceStart, end - targetDuration);
         }
       } else {
-        // Fallback: 15% crop from start/end
-        const cropAmount = activeDuration * 0.15;
-        if (list.length === 1) {
-          start = silenceStart;
-          end = silenceEnd;
-        } else if (idx === 0) {
-          start = silenceStart;
-          end = silenceEnd - cropAmount;
-        } else if (idx === list.length - 1) {
-          start = silenceStart + cropAmount;
-          end = silenceEnd;
-        } else {
-          start = silenceStart + cropAmount;
-          end = silenceEnd - cropAmount;
-        }
-      }
-
-      // Hard safeguard: make sure each song plays at least 45% of its length
-      const minPlayDuration = activeDuration * 0.45;
-      if (end - start < minPlayDuration) {
-        const deficit = minPlayDuration - (end - start);
-        if (idx === 0) {
-          end = Math.min(silenceEnd, end + deficit);
-        } else if (idx === list.length - 1) {
-          start = Math.max(silenceStart, start - deficit);
-        } else {
-          start = Math.max(silenceStart, start - deficit / 2);
-          end = Math.min(silenceEnd, end + deficit / 2);
-        }
+        // Fallback for short tracks: trim intro/outro by 10%
+        const cropAmount = activeDuration * 0.10;
+        start = silenceStart + cropAmount;
+        end = silenceEnd - cropAmount;
       }
 
       // Final bounds check
@@ -616,7 +582,7 @@ export default function MixingPage() {
         end = silenceEnd;
       }
 
-      console.log(`[AutoCut SmartPeak] ${track.name}: Original=${duration.toFixed(2)}s, Silence=[${silenceStart.toFixed(2)}s - ${silenceEnd.toFixed(2)}s], SmartCut=[${start.toFixed(2)}s - ${end.toFixed(2)}s] (Kept ${(100 * (end - start) / duration).toFixed(0)}%)`);
+      console.log(`[AutoCut Perfect] ${track.name}: Original=${duration.toFixed(2)}s, Silence=[${silenceStart.toFixed(2)}s - ${silenceEnd.toFixed(2)}s], PerfectCut=[${start.toFixed(2)}s - ${end.toFixed(2)}s] (Kept ${(100 * (end - start) / duration).toFixed(0)}%)`);
 
       return {
         ...track,
