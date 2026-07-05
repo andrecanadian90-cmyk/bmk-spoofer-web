@@ -1347,6 +1347,19 @@ export default function MixingPage() {
 
   return (
     <div style={{ paddingBottom: 60 }}>
+      <Script id="ogg-config" strategy="afterInteractive">
+        {`
+          window.Module = {
+            locateFile: function(path) {
+              if (path.endsWith('.mem')) {
+                return '/' + path;
+              }
+              return path;
+            },
+            memoryInitializerPrefixURL: '/'
+          };
+        `}
+      </Script>
       <Script src="/lame.min.js" strategy="afterInteractive" />
       <Script src="/OggVorbisEncoder.min.js" strategy="afterInteractive" />
 
