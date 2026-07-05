@@ -881,6 +881,7 @@ export default function MixingPage() {
 
       let gain = 1.0;
       let bass = 0;
+      let rate = 1.0;
 
       // FADE IN
       if (index > 0 && current < track.timelineStart + getTransitionDuration(playlist[index - 1], track)) {
@@ -890,19 +891,33 @@ export default function MixingPage() {
         const curves = calculateCrossfadeCurves(Math.max(0, Math.min(1, progress)), transitionStyle);
         gain = curves.gainB;
         bass = curves.bassB;
+
+        // Dynamic BPM Ramping
+        const currentBpm = prev.bpm + Math.max(0, Math.min(1, progress)) * (track.bpm - prev.bpm);
+        rate = currentBpm / track.bpm;
       }
       // FADE OUT
       else if (index < playlist.length - 1 && current > trackEnd - getTransitionDuration(track, playlist[index + 1])) {
         const next = playlist[index + 1];
         const transDur = getTransitionDuration(track, next);
-        const progress = (trackEnd - current) / transDur; // 1 to 0
-        const curves = calculateCrossfadeCurves(Math.max(0, Math.min(1, 1 - progress)), transitionStyle);
+        const fadeStart = trackEnd - transDur;
+        const progress = (current - fadeStart) / transDur;
+        const curves = calculateCrossfadeCurves(Math.max(0, Math.min(1, progress)), transitionStyle);
         gain = curves.gainA;
         bass = curves.bassA;
+
+        // Dynamic BPM Ramping
+        const currentBpm = track.bpm + Math.max(0, Math.min(1, progress)) * (next.bpm - track.bpm);
+        rate = currentBpm / track.bpm;
       }
 
       active.gainNode.gain.setValueAtTime(gain * volumeFactor, audioCtxRef.current.currentTime);
       active.lowFilterNode.gain.setValueAtTime(bass, audioCtxRef.current.currentTime);
+      
+      // Pitch-Locked Tempo Matching
+      active.sourceNode.playbackRate.setValueAtTime(rate, audioCtxRef.current.currentTime);
+      const tempoDetune = 12 * Math.log2(rate) * 1200;
+      active.sourceNode.detune.setValueAtTime((track.detune || 0) - tempoDetune, audioCtxRef.current.currentTime);
     });
   };
 
@@ -965,9 +980,21 @@ export default function MixingPage() {
             const curves = calculateCrossfadeCurves(prog, transitionStyle);
             gainNode.gain.setValueAtTime(curves.gainB * volumeFactor, time);
             lowFilter.gain.setValueAtTime(curves.bassB, time);
+
+            // BPM Ramping & Key Lock
+            const currentBpm = prev.bpm + prog * (track.bpm - prev.bpm);
+            const rate = currentBpm / track.bpm;
+            const tempoDetune = 12 * Math.log2(rate) * 1200;
+            sourceNode.playbackRate.setValueAtTime(rate, time);
+            sourceNode.detune.setValueAtTime((track.detune || 0) - tempoDetune, time);
           }
+          // Restore native rate after fade-in ends
+          sourceNode.playbackRate.setValueAtTime(1.0, track.timelineStart + transDur);
+          sourceNode.detune.setValueAtTime(track.detune || 0, track.timelineStart + transDur);
         } else {
           gainNode.gain.setValueAtTime(1.0 * volumeFactor, 0);
+          sourceNode.playbackRate.setValueAtTime(1.0, 0);
+          sourceNode.detune.setValueAtTime(track.detune || 0, 0);
         }
 
         // FADE OUT
@@ -982,12 +1009,18 @@ export default function MixingPage() {
             const curves = calculateCrossfadeCurves(prog, transitionStyle);
             gainNode.gain.setValueAtTime(curves.gainA * volumeFactor, time);
             lowFilter.gain.setValueAtTime(curves.bassA, time);
+
+            // BPM Ramping & Key Lock
+            const currentBpm = track.bpm + prog * (next.bpm - track.bpm);
+            const rate = currentBpm / track.bpm;
+            const tempoDetune = 12 * Math.log2(rate) * 1200;
+            sourceNode.playbackRate.setValueAtTime(rate, time);
+            sourceNode.detune.setValueAtTime((track.detune || 0) - tempoDetune, time);
           }
         } else {
           gainNode.gain.setValueAtTime(1.0 * volumeFactor, Math.max(0, trackTimelineEnd - 0.1));
         }
 
-        sourceNode.detune.setValueAtTime(track.detune || 0, 0);
         sourceNode.start(track.timelineStart, track.clipStart, trackDur);
       });
 
