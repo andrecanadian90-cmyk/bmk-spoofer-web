@@ -1515,16 +1515,15 @@ export default function MixingPage() {
           window.Module = {
             locateFile: function(path) {
               if (path.endsWith('.mem')) {
-                return '/' + path;
+                return '/api/mixing/lib?file=OggVorbisEncoder.min.js.mem&token=${token}';
               }
               return path;
-            },
-            memoryInitializerPrefixURL: '/'
+            }
           };
         `}
       </Script>
-      <Script src="/lame.min.js" strategy="afterInteractive" />
-      <Script src="/OggVorbisEncoder.min.js" strategy="afterInteractive" />
+      <Script src={`/api/mixing/lib?file=lame.min.js&token=${token}`} strategy="afterInteractive" />
+      <Script src={`/api/mixing/lib?file=OggVorbisEncoder.min.js&token=${token}`} strategy="afterInteractive" />
 
       {/* Header bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
