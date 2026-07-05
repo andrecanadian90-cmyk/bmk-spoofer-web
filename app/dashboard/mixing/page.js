@@ -948,9 +948,9 @@ export default function MixingPage() {
       active.gainNode.gain.setValueAtTime(gain * volumeFactor, audioCtxRef.current.currentTime);
       active.lowFilterNode.gain.setValueAtTime(bass, audioCtxRef.current.currentTime);
       
-      // Pitch-Locked Tempo Matching
+      // Pitch-Locked Tempo Matching (1200 cents per octave correction)
       active.sourceNode.playbackRate.setValueAtTime(rate, audioCtxRef.current.currentTime);
-      const tempoDetune = 12 * Math.log2(rate) * 1200;
+      const tempoDetune = 1200 * Math.log2(rate);
       active.sourceNode.detune.setValueAtTime((track.detune || 0) - tempoDetune, audioCtxRef.current.currentTime);
     });
   };
@@ -1027,7 +1027,7 @@ export default function MixingPage() {
             // BPM Ramping & Key Lock
             const currentBpm = prev.bpm + prog * (track.bpm - prev.bpm);
             const rate = currentBpm / track.bpm;
-            const tempoDetune = 12 * Math.log2(rate) * 1200;
+            const tempoDetune = 1200 * Math.log2(rate);
             sourceNode.playbackRate.setValueAtTime(rate, time);
             sourceNode.detune.setValueAtTime((track.detune || 0) - tempoDetune, time);
           }
@@ -1056,7 +1056,7 @@ export default function MixingPage() {
             // BPM Ramping & Key Lock
             const currentBpm = track.bpm + prog * (next.bpm - track.bpm);
             const rate = currentBpm / track.bpm;
-            const tempoDetune = 12 * Math.log2(rate) * 1200;
+            const tempoDetune = 1200 * Math.log2(rate);
             sourceNode.playbackRate.setValueAtTime(rate, time);
             sourceNode.detune.setValueAtTime((track.detune || 0) - tempoDetune, time);
           }
