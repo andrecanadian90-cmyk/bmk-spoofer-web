@@ -985,7 +985,19 @@ export default function MixingPage() {
 
   return (
     <div style={{ paddingBottom: 60 }}>
-      {/* Script elements for encoders loading */}
+      <script dangerouslySetInnerHTML={{
+        __html: `
+          window.Module = {
+            locateFile: function(path) {
+              if (path.endsWith('.mem')) {
+                return '/' + path;
+              }
+              return path;
+            },
+            memoryInitializerPrefixURL: '/'
+          };
+        `
+      }} />
       <Script src="/lame.min.js" strategy="afterInteractive" />
       <Script src="/OggVorbisEncoder.min.js" strategy="afterInteractive" />
 
