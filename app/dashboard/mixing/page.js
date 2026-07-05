@@ -529,7 +529,7 @@ export default function MixingPage() {
       }
       updated.push(clonedTrack);
     });
-    
+    setPlaylist(updated);
   };
 
   const handleManualCutChange = (index, newStart, newEnd) => {
