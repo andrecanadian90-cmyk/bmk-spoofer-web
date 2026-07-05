@@ -433,7 +433,15 @@ export default function MixingPage() {
 
   const getTransitionDuration = (trackA, trackB) => {
     const avgBpm = ((trackA.bpm || 120) + (trackB.bpm || 120)) / 2;
-    return (16 / avgBpm) * 60; // 16 beats (4 bars) - Optimized for Setlist transition, avoiding long mashup overlaps
+    const standardOverlap = (16 / avgBpm) * 60; // 16 beats
+    
+    const durA = trackA.clipEnd - trackA.clipStart;
+    const durB = trackB.clipEnd - trackB.clipStart;
+    const minDur = Math.min(durA, durB);
+    
+    // Cap transition to max 15% of the shorter track duration to prevent massive clashing overlaps
+    const maxOverlap = minDur * 0.15;
+    return Math.max(0.5, Math.min(standardOverlap, maxOverlap));
   };
 
   const getMixTotalDuration = (list = playlist) => {
