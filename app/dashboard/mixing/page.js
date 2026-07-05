@@ -130,7 +130,7 @@ const ASSET_TYPES = {
 };
 
 export default function MixingPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { showToast } = useToast();
   const { language } = useLanguage();
   const [mounted, setMounted] = useState(false);
@@ -1313,7 +1313,18 @@ export default function MixingPage() {
 
   if (!mounted) return null;
 
-  if (!licenseInfo) {
+  const hasDbAccess = user && (user.mixingIsPermanent || (user.mixingExpiry && new Date(user.mixingExpiry) > new Date()));
+  const hasTrialAccess = licenseInfo && (!licenseInfo.trial || (new Date(licenseInfo.expiry).getTime() > Date.now()));
+  const isUnlocked = hasDbAccess || hasTrialAccess;
+
+  // Format expiry remaining days text
+  let dbTimeLeftStr = '';
+  if (user && user.mixingExpiry) {
+    const daysLeft = Math.ceil((new Date(user.mixingExpiry) - new Date()) / (1000 * 60 * 60 * 24));
+    dbTimeLeftStr = `${daysLeft} Hari`;
+  }
+
+  if (!isUnlocked) {
     const handleStartTrial = () => {
       const trialData = {
         demo: true,
@@ -1328,10 +1339,10 @@ export default function MixingPage() {
     };
 
     return (
-      <div style={{ maxWidth: 480, margin: '60px auto', padding: 12 }}>
-        <div className="card" style={{ padding: 36, textAlign: 'center', boxShadow: '0 15px 40px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ maxWidth: 480, margin: '40px auto', padding: 12 }}>
+        <div className="card" style={{ padding: 32, textAlign: 'center', boxShadow: '0 15px 40px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div>
-            <span style={{ fontSize: '3.5rem', display: 'block', marginBottom: 12 }}>🎛️</span>
+            <span style={{ fontSize: '3rem', display: 'block', marginBottom: 12 }}>🎛️</span>
             <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-primary)', marginBottom: 6, letterSpacing: '0.5px' }}>BERNADA MIXING CONSOLE</h2>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
               {language === 'id' 
@@ -1342,20 +1353,47 @@ export default function MixingPage() {
 
           <hr style={{ border: 0, borderTop: '1px solid var(--border-subtle)', margin: 0 }} />
 
+          {/* Pricing Grid */}
+          <div style={{ textAlign: 'left' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--warning)', letterSpacing: '0.5px' }}>📊 DAFTAR HARGA LISENSI VIP</span>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, margin: '14px 0', textAlign: 'center' }}>
+              {/* 7 Days */}
+              <div style={{ padding: '10px 6px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)', borderRadius: 8, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--text-secondary)' }}>PAKET 7 HARI</div>
+                <div style={{ fontSize: '0.82rem', fontWeight: 900, color: 'var(--text-primary)', marginTop: 4 }}>Rp 50K</div>
+              </div>
+              {/* 30 Days */}
+              <div style={{ padding: '10px 6px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)', borderRadius: 8, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--text-secondary)' }}>PAKET 30 HARI</div>
+                <div style={{ fontSize: '0.82rem', fontWeight: 900, color: 'var(--text-primary)', marginTop: 4 }}>Rp 150K</div>
+              </div>
+              {/* Permanent */}
+              <div style={{ padding: '10px 6px', background: 'rgba(56,189,248,0.06)', border: '1px solid rgba(56,189,248,0.2)', borderRadius: 8, position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <span style={{ position: 'absolute', top: -7, left: '50%', transform: 'translateX(-50%)', fontSize: '0.42rem', background: 'var(--accent)', color: '#000', padding: '1px 5px', borderRadius: 4, fontWeight: 900, whiteSpace: 'nowrap' }}>PROMO</span>
+                <div style={{ fontSize: '0.58rem', fontWeight: 800, color: 'var(--text-secondary)' }}>PERMANEN</div>
+                <div style={{ fontSize: '0.58rem', textDecoration: 'line-through', color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>500K</div>
+                <div style={{ fontSize: '0.82rem', fontWeight: 900, color: 'var(--accent)', marginTop: 1 }}>Rp 400K</div>
+              </div>
+            </div>
+          </div>
+
+          <hr style={{ border: 0, borderTop: '1px solid var(--border-subtle)', margin: 0 }} />
+
           {/* Option 1: Official Purchase VIP Discord Ticket */}
-          <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 8 }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent)' }}>👑 BELI LISENSI VIP</span>
-            <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
               {language === 'id'
-                ? 'Buka akses tanpa batas waktu ke seluruh fitur eksklusif Bernada Mixing Console. Hubungi kami langsung melalui Open Ticket di server Discord kami untuk melakukan pembelian lisensi.'
-                : 'Unlock permanent lifetime access to all exclusive Bernada Mixing Console features. Contact us directly via Open Ticket on our Discord server to purchase a license.'}
+                ? 'Hubungi kami langsung melalui Open Ticket di server Discord kami untuk melakukan pembelian paket lisensi VIP.'
+                : 'Contact us directly via Open Ticket on our Discord server to purchase a VIP license.'}
             </p>
             <a 
               href="https://discord.gg/x26ky9drYr" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="btn btn-primary" 
-              style={{ width: '100%', height: 42, fontSize: '0.78rem', fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              style={{ width: '100%', height: 38, fontSize: '0.75rem', fontWeight: 800, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
             >
               ✉️ Beli Lisensi via Open Ticket
             </a>
@@ -1364,20 +1402,20 @@ export default function MixingPage() {
           <hr style={{ border: 0, borderTop: '1px solid var(--border-subtle)', margin: 0 }} />
 
           {/* Option 2: Free Trial 1 Day */}
-          <div style={{ textAlign: 'left', padding: '16px', background: 'rgba(16,185,129,0.06)', borderRadius: 8, border: '1px solid rgba(16,185,129,0.15)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ textAlign: 'left', padding: '12px 16px', background: 'rgba(16,185,129,0.04)', borderRadius: 8, border: '1px solid rgba(16,185,129,0.15)', display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--success)' }}>⚡ UJI COBA GRATIS (FREE TRIAL)</span>
-              <span className="badge badge-success" style={{ fontSize: '0.52rem', fontWeight: 900 }}>24 JAM</span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--success)' }}>⚡ UJI COBA GRATIS (FREE TRIAL)</span>
+              <span className="badge badge-success" style={{ fontSize: '0.5rem', fontWeight: 900 }}>24 JAM</span>
             </div>
-            <p style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+            <p style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>
               {language === 'id'
-                ? 'Dapatkan akses uji coba penuh 1 hari secara instan ke seluruh fitur premium audio mixing Bernada secara gratis.'
+                ? 'Dapatkan akses uji coba penuh 1 hari secara gratis ke seluruh fitur premium audio mixing Bernada.'
                 : 'Get instant 24-hour full access trial to all premium Bernada audio mixing features for free.'}
             </p>
             <button 
               type="button" 
               className="btn btn-success" 
-              style={{ width: '100%', height: 38, fontSize: '0.75rem', fontWeight: 800, color: '#fff', marginTop: 4 }}
+              style={{ width: '100%', height: 36, fontSize: '0.72rem', fontWeight: 800, color: '#fff', marginTop: 2 }}
               onClick={handleStartTrial}
             >
               🚀 Aktifkan Free Trial 1 Hari
@@ -1410,7 +1448,15 @@ export default function MixingPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
           <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>{t('title')}</h2>
-          {licenseInfo.trial ? (
+          {user && user.mixingIsPermanent ? (
+            <span className="badge badge-info" style={{ fontSize: '0.65rem', marginTop: 4, background: 'rgba(56,189,248,0.15)', color: 'var(--accent)', border: '1px solid rgba(56,189,248,0.3)', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
+              👑 VIP PERMANENT
+            </span>
+          ) : user && user.mixingExpiry && new Date(user.mixingExpiry) > new Date() ? (
+            <span className="badge badge-info" style={{ fontSize: '0.65rem', marginTop: 4, background: 'rgba(56,189,248,0.15)', color: 'var(--accent)', border: '1px solid rgba(56,189,248,0.3)', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
+              ⏱️ VIP ACTIVE ({dbTimeLeftStr})
+            </span>
+          ) : licenseInfo && licenseInfo.trial ? (
             <span className="badge badge-success" style={{ fontSize: '0.65rem', marginTop: 4, background: 'rgba(16,185,129,0.15)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.3)', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>
               ⏱️ FREE TRIAL: {trialTimeLeft} LEFT
             </span>

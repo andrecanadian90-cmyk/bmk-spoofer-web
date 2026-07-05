@@ -30,7 +30,7 @@ export async function PATCH(request) {
     requireAdmin(request);
     await connectDB();
 
-    const { userId, action, totalTopUp } = await request.json();
+    const { userId, action, totalTopUp, duration } = await request.json();
     if (!userId || !action) {
       return NextResponse.json({ success: false, error: 'userId and action are required' }, { status: 400 });
     }
@@ -50,6 +50,23 @@ export async function PATCH(request) {
         update.role = 'user';
         update.totalTopUp = val;
         update.coins = val;
+      }
+    }
+    else if (action === 'set_mixing_duration') {
+      if (duration === '7_days') {
+        update.mixingExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        update.mixingIsPermanent = false;
+      } else if (duration === '30_days') {
+        update.mixingExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        update.mixingIsPermanent = false;
+      } else if (duration === 'permanent') {
+        update.mixingExpiry = null;
+        update.mixingIsPermanent = true;
+      } else if (duration === 'revoke') {
+        update.mixingExpiry = null;
+        update.mixingIsPermanent = false;
+      } else {
+        return NextResponse.json({ success: false, error: 'Invalid duration' }, { status: 400 });
       }
     }
     else return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 });

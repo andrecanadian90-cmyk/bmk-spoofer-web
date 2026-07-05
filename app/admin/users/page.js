@@ -13,6 +13,8 @@ export default function AdminUsersPage() {
   const [coinAmount, setCoinAmount] = useState('');
   const [rankModal, setRankModal] = useState(null);
   const [selectedRank, setSelectedRank] = useState('50');
+  const [mixModal, setMixModal] = useState(null);
+  const [selectedDuration, setSelectedDuration] = useState('7_days');
 
   useEffect(() => { fetchUsers(); }, []);
 
@@ -58,6 +60,27 @@ export default function AdminUsersPage() {
       if (data.success) {
         showToast(`Successfully updated rank for ${rankModal.username}`, 'success');
         setRankModal(null);
+        fetchUsers();
+      } else {
+        showToast(data.error, 'error');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  const updateMixingDuration = async () => {
+    if (!mixModal) return;
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userId: mixModal._id, action: 'set_mixing_duration', duration: selectedDuration }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Successfully updated mixing duration for ${mixModal.username}`, 'success');
+        setMixModal(null);
         fetchUsers();
       } else {
         showToast(data.error, 'error');
@@ -123,6 +146,7 @@ export default function AdminUsersPage() {
                 <th>Coins</th>
                 <th>Spoofs</th>
                 <th>Role</th>
+                <th>Mix License</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -135,11 +159,27 @@ export default function AdminUsersPage() {
                   <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--warning)' }}>{u.coins}</td>
                   <td style={{ fontFamily: 'var(--font-mono)' }}>{u.spoofCount || 0}</td>
                   <td><span className={`badge ${u.role === 'admin' ? 'badge-info' : 'badge-success'}`}>{u.role}</span></td>
+                  <td>
+                    {u.mixingIsPermanent ? (
+                      <span className="badge badge-success" style={{ fontWeight: 700 }}>Permanent</span>
+                    ) : u.mixingExpiry ? (
+                      new Date(u.mixingExpiry) > new Date() ? (
+                        <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>
+                          Active ({Math.ceil((new Date(u.mixingExpiry) - new Date()) / (1000 * 60 * 60 * 24))}d)
+                        </span>
+                      ) : (
+                        <span className="badge badge-outline" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Expired</span>
+                      )
+                    ) : (
+                      <span className="badge badge-outline" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>None</span>
+                    )}
+                  </td>
                   <td><span className={`badge ${u.banned ? 'badge-error' : 'badge-success'}`}>{u.banned ? 'Banned' : 'Active'}</span></td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button className="btn btn-outline btn-sm" onClick={() => { setModal(u); setCoinAmount(''); }}>+ Coins</button>
                       <button className="btn btn-outline btn-sm" onClick={() => { setRankModal(u); setSelectedRank(String(u.totalTopUp || 0)); }}>Set Rank</button>
+                      <button className="btn btn-outline btn-sm" onClick={() => { setMixModal(u); setSelectedDuration('7_days'); }}>Set Mix</button>
                       <button className={`btn btn-sm ${u.banned ? 'btn-outline' : 'btn-danger'}`} onClick={() => toggleBan(u._id, u.banned ? 'unban' : 'ban')}>
                         {u.banned ? 'Unban' : 'Ban'}
                       </button>
@@ -196,6 +236,37 @@ export default function AdminUsersPage() {
             <div className="modal-actions" style={{ marginTop: 24 }}>
               <button className="btn btn-outline" onClick={() => setRankModal(null)}>Cancel</button>
               <button className="btn btn-primary" onClick={updateRank}>Update Rank</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mixModal && (
+        <div className="modal-overlay" onClick={() => setMixModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-title">Set Bernada Mixing Access for {mixModal.username}</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 16 }}>
+              Current Status: <strong>
+                {mixModal.mixingIsPermanent ? 'Permanent' : mixModal.mixingExpiry ? `Expiry: ${new Date(mixModal.mixingExpiry).toLocaleDateString()}` : 'No access'}
+              </strong>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Select Access Package</label>
+              <select 
+                className="input" 
+                value={selectedDuration} 
+                onChange={e => setSelectedDuration(e.target.value)}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
+              >
+                <option value="7_days">7 Days Access (Rp 50.000)</option>
+                <option value="30_days">30 Days Access (Rp 150.000)</option>
+                <option value="permanent">Permanent / Lifetime (Rp 400.000)</option>
+                <option value="revoke">Revoke / No Access</option>
+              </select>
+            </div>
+            <div className="modal-actions" style={{ marginTop: 24 }}>
+              <button className="btn btn-outline" onClick={() => setMixModal(null)}>Cancel</button>
+              <button className="btn btn-primary" onClick={updateMixingDuration}>Save Permissions</button>
             </div>
           </div>
         </div>

@@ -69,6 +69,8 @@ export async function GET(request) {
         discordAvatar: user.discordAvatar,
         spentCoins: user.spentCoins || 0,
         totalTopUp: user.totalTopUp || 0,
+        mixingExpiry: user.mixingExpiry,
+        mixingIsPermanent: user.mixingIsPermanent || false,
         createdAt: user.createdAt, 
         lastLogin: user.lastLogin,
       },
