@@ -37,9 +37,9 @@ export default function Navbar() {
           animation: 'marquee 30s linear infinite', paddingLeft: '100%'
         }}>
           {language === 'id' ? (
-            '🎉 Spesial Rilis Perdana BERNADA STORE! Nikmati bonus koin gratis khusus hari ini — silakan buka tiket bantuan dan hubungi Admin sekarang juga untuk klaim koin Anda! 💎'
+            '🔥 BERNADA MIXING CONSOLE RESMI DIRILIS! Nikmati transisi mixtape DJ audio otomatis & harmonisasi nada berbasis kecerdasan buatan. Dapatkan FREE TRIAL 1 HARI sekarang juga di dashboard menu Mixing secara GRATIS! 🚀'
           ) : (
-            '🎉 BERNADA STORE Grand Opening Special! Enjoy your free coin bonus today — simply open a support ticket and contact Admin now to claim your coins! 💎'
+            '🔥 BERNADA MIXING CONSOLE IS OFFICIALLY RELEASED! Experience automated DJ transitions & harmonic key aligning powered by AI. Claim your 1-DAY FREE TRIAL now on the Mixing dashboard for FREE! 🚀'
           )}
         </div>
       </div>
