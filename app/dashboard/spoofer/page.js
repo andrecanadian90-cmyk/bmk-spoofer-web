@@ -148,6 +148,7 @@ export default function SpooferPage() {
   const [autoUploadSelection, setAutoUploadSelection] = useState(null);
   const [spoofing, setSpoofing] = useState(false);
   const [logs, setLogs] = useState([]);
+  const [currentRunLogs, setCurrentRunLogs] = useState([]);
   const [stats, setStats] = useState({ total: 0, successful: 0, failed: 0 });
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('Idle');
@@ -192,7 +193,7 @@ export default function SpooferPage() {
     const lines = assetInput.split('\n');
     const processedLines = lines.map(line => {
       const cleanLine = line.trim();
-      const log = logs.find(l => l.originalLine === cleanLine || (l.originalAssetId && cleanLine.includes(l.originalAssetId)));
+      const log = currentRunLogs.find(l => l.originalLine === cleanLine || (l.originalAssetId && cleanLine.includes(l.originalAssetId)));
       if (log) {
         if (log.status === 'success') {
           if (log.newAssetId) {
@@ -268,6 +269,20 @@ export default function SpooferPage() {
     setStatus('Spoofing...');
     setProgress(10);
     setElapsed(0);
+    const tempAssets = parseClientInput(assetInput);
+    const pendingLogs = tempAssets.map((asset, i) => ({
+      _id: Date.now() + i,
+      assetName: asset.name,
+      originalAssetId: asset.id,
+      originalLine: asset.originalLine,
+      newAssetId: null,
+      status: 'pending',
+      fileSize: 0,
+      duration: 0,
+      createdAt: new Date().toISOString(),
+    }));
+    setCurrentRunLogs(pendingLogs);
+    setStats({ total: tempAssets.length, successful: 0, failed: 0 });
 
     const t = setInterval(() => setElapsed(p => p + 1), 1000);
     setTimerState(t);
@@ -302,6 +317,7 @@ export default function SpooferPage() {
           assetType: l.assetType,
           createdAt: new Date().toISOString(),
         }));
+        setCurrentRunLogs(newLogs);
         setLogs(prev => [...newLogs, ...prev]);
         showToast(currentT.successToast(data.data.successful, data.data.total), 'success');
         refreshUser();
@@ -324,7 +340,9 @@ export default function SpooferPage() {
           error: data.error,
           createdAt: new Date().toISOString(),
         }));
+        setCurrentRunLogs(failedLogs);
         setLogs(prev => [...failedLogs, ...prev]);
+        setStats({ total: tempAssets.length, successful: 0, failed: tempAssets.length });
       }
     } catch (err) {
       setStatus('Error');
@@ -344,7 +362,9 @@ export default function SpooferPage() {
         error: err.message,
         createdAt: new Date().toISOString(),
       }));
+      setCurrentRunLogs(failedLogs);
       setLogs(prev => [...failedLogs, ...prev]);
+      setStats({ total: tempAssets.length, successful: 0, failed: tempAssets.length });
     } finally {
       clearInterval(t);
       setTimerState(null);
@@ -815,9 +835,9 @@ export default function SpooferPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <h3 style={{ fontSize: '0.95rem', fontWeight: 700 }}>{currentT.execLogs}</h3>
-              {logs.length > 0 && <span className="badge badge-success">{stats.successful}/{stats.total}</span>}
+              {currentRunLogs.length > 0 && <span className="badge badge-success">{stats.successful}/{stats.total}</span>}
             </div>
-            {logs.length > 0 && (
+            {currentRunLogs.length > 0 && (
               <button 
                 onClick={handleCopyCleanOutput}
                 style={{
@@ -838,7 +858,7 @@ export default function SpooferPage() {
               </button>
             )}
           </div>
-          {logs.length === 0 ? (
+          {currentRunLogs.length === 0 ? (
             <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>{currentT.noLogs}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}>
@@ -849,7 +869,7 @@ export default function SpooferPage() {
                   const lines = assetInput.split('\n');
                   const processedLines = lines.map(line => {
                     const cleanLine = line.trim();
-                    const log = logs.find(l => l.originalLine === cleanLine || (l.originalAssetId && cleanLine.includes(l.originalAssetId)));
+                    const log = currentRunLogs.find(l => l.originalLine === cleanLine || (l.originalAssetId && cleanLine.includes(l.originalAssetId)));
                     if (log) {
                       if (log.status === 'success') {
                         if (log.newAssetId) {
@@ -896,9 +916,9 @@ export default function SpooferPage() {
                     {lang === 'en' ? 'Failed' : 'Gagal'}: {stats.failed}
                   </span>
                 )}
-                {logs.length > 0 && (
+                {currentRunLogs.length > 0 && currentRunLogs[0]?.status !== 'pending' && (
                   <span style={{ color: 'var(--text-muted)', marginLeft: 'auto' }}>
-                    ⚡ {lang === 'en' ? 'Finished' : 'Selesai'}: {new Date(logs[0].createdAt).toLocaleTimeString()}
+                    ⚡ {lang === 'en' ? 'Finished' : 'Selesai'}: {new Date(currentRunLogs[0].createdAt).toLocaleTimeString()}
                   </span>
                 )}
               </div>
