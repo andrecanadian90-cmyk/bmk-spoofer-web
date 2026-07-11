@@ -223,7 +223,8 @@ export async function POST(request) {
             status: 'success',
             duration: log.duration,
             fileData: fileData,
-            assetType: assetInfo.assetType
+            assetType: assetInfo.assetType,
+            debugLogs: downloaded.debugLogs || []
           });
 
         } catch (err) {
