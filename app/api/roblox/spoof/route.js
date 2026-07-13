@@ -77,6 +77,8 @@ export async function POST(request) {
     const isBasic = !isAdmin && !isTopSpender && !isExclusive && !isPremium;
 
     // Determine batch size limit based on rank
+    const isFreeAsset = ['animation', 'audio', 'video'].includes(type.toLowerCase());
+    
     let maxBatchSize = 10;
     let rankName = 'BASIC';
     if (isAdmin) {
@@ -93,28 +95,40 @@ export async function POST(request) {
       rankName = 'PREMIUM';
     }
 
-    if (!isAdmin && !isTopSpender && assets.length > maxBatchSize) {
+    // Free assets bypass the rank-specific small limits and allow up to 100 for everyone
+    if (isFreeAsset) {
+      maxBatchSize = 100;
+      rankName = 'FREE BATCH';
+    }
+
+    if (!isAdmin && !isTopSpender && !isFreeAsset && assets.length > maxBatchSize) {
       return NextResponse.json({
         success: false,
         error: `Batas maksimal proses massal (bulk) untuk rank ${rankName} adalah ${maxBatchSize} aset per permintaan. (Jumlah input: ${assets.length} aset).`,
       }, { status: 400 });
+    } else if (isFreeAsset && assets.length > 100) {
+      return NextResponse.json({
+        success: false,
+        error: `Batas maksimal proses massal (bulk) untuk aset gratis adalah 100 aset per permintaan untuk menghindari server timeout.`,
+      }, { status: 400 });
     }
 
-    // Enforce daily usage limit ONLY for BASIC rank
-    if (isBasic) {
+    // Enforce daily usage limit ONLY for BASIC rank and ONLY for paid assets (UGC, Mesh)
+    if (isBasic && !isFreeAsset) {
       const oneDayAgo = new Date();
       oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
       const successfulBypassesCount = await SpoofLog.countDocuments({
         userId: user._id,
         status: 'success',
+        assetType: { $nin: ['animation', 'audio', 'video'] },
         createdAt: { $gte: oneDayAgo }
       });
       
       if (successfulBypassesCount >= 10) {
         return NextResponse.json({
           success: false,
-          error: 'Batas penggunaan rank BASIC tercapai (Maksimal 10x bypass per hari untuk seluruh tipe aset). Silakan lakukan top-up minimal 50 koin untuk meningkatkan pangkat ke PREMIUM dan menghapus batasan ini!'
+          error: 'Batas penggunaan rank BASIC tercapai (Maksimal 10x bypass per hari untuk UGC dan Mesh). Silakan lakukan top-up minimal 50 koin untuk meningkatkan pangkat ke PREMIUM dan menghapus batasan ini!'
         }, { status: 403 });
       }
 
@@ -182,6 +196,8 @@ export async function POST(request) {
           originalAssetId: asset.id,
           originalLine: asset.originalLine,
           assetName: asset.name,
+          assetType: type,
+          cost: costPerAsset,
           status: 'pending',
         });
 
