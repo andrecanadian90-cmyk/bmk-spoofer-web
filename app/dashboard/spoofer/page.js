@@ -113,27 +113,76 @@ const translations = {
 };
 
 const parseClientInput = (input) => {
-  const lines = input.trim().split('\n').filter(l => l.trim());
-  return lines.map(line => {
-    const cleanLine = line.trim();
-    const luaMatch = cleanLine.match(/\{\s*"([^"]+)"\s*,\s*(\d+)\s*\}/);
-    if (luaMatch) {
-      return { name: luaMatch[1], id: luaMatch[2], originalLine: cleanLine };
+  if (!input || !input.trim()) return [];
+
+  const assets = [];
+
+  // 1. Try matching Lua table block objects: { Name = "...", AnimationId = "rbxassetid://123456" }
+  const luaObjectRegex = /\{\s*(?:Name\s*=\s*["']([^"']+)["']\s*,?\s*)?(?:AnimationId|SoundId|AudioId|AssetId|id|TextureId|MeshId)\s*=\s*["']?(?:rbxassetid:\/\/)?(\d{5,})["']?\s*,?\s*(?:Name\s*=\s*["']([^"']+)["']\s*)?\}/gi;
+  
+  let match;
+  let hasObjectMatches = false;
+  while ((match = luaObjectRegex.exec(input)) !== null) {
+    hasObjectMatches = true;
+    const name = match[1] || match[3] || `Asset_${match[2]}`;
+    const id = match[2];
+    assets.push({ name, id, originalLine: match[0] });
+  }
+
+  if (hasObjectMatches && assets.length > 0) {
+    return assets;
+  }
+
+  // 2. Line by line scanning with pending name context
+  const lines = input.split('\n');
+  let pendingName = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // Check if line is just Name = "X"
+    const nameMatch = line.match(/Name\s*=\s*["']([^"']+)["']/i);
+    if (nameMatch && !line.match(/\d{5,}/)) {
+      pendingName = nameMatch[1];
+      continue;
     }
-    const csvMatch = cleanLine.match(/^["']?([^,"']+)["']?\s*,\s*(\d+)/);
+
+    // Check Lua tuple {"Name", 123456}
+    const luaTuple = line.match(/\{\s*["']([^"']+)["']\s*,\s*(\d{5,})\s*\}/);
+    if (luaTuple) {
+      assets.push({ name: luaTuple[1], id: luaTuple[2], originalLine: line });
+      pendingName = null;
+      continue;
+    }
+
+    // Check CSV "Name", 123456
+    const csvMatch = line.match(/^["']?([^,"']+)["']?\s*,\s*(\d{5,})/);
     if (csvMatch) {
-      return { name: csvMatch[1].trim(), id: csvMatch[2], originalLine: cleanLine };
+      assets.push({ name: csvMatch[1].trim(), id: csvMatch[2], originalLine: line });
+      pendingName = null;
+      continue;
     }
-    const idMatch = cleanLine.match(/^(\d{5,})$/);
+
+    // Check Any 5+ digit number (rbxassetid://123456, asset?id=123456, or raw ID)
+    const idMatch = line.match(/(\d{5,})/);
     if (idMatch) {
-      return { name: `Asset_${idMatch[1]}`, id: idMatch[1], originalLine: cleanLine };
+      const id = idMatch[1];
+      let name = pendingName;
+      if (!name) {
+        const inlineNameMatch = line.match(/Name\s*=\s*["']([^"']+)["']/i);
+        if (inlineNameMatch) name = inlineNameMatch[1];
+      }
+      if (!name) {
+        name = `Asset_${id}`;
+      }
+      assets.push({ name, id, originalLine: line });
+      pendingName = null;
+      continue;
     }
-    const urlMatch = cleanLine.match(/(\d{8,})/);
-    if (urlMatch) {
-      return { name: `Asset_${urlMatch[1]}`, id: urlMatch[1], originalLine: cleanLine };
-    }
-    return { name: 'Unknown', id: '0', originalLine: cleanLine };
-  });
+  }
+
+  return assets;
 };
 
 export default function SpooferPage() {
@@ -257,7 +306,8 @@ export default function SpooferPage() {
     }
 
     const isUnlimited = user?.role === 'admin' || user?.role === 'top_spender';
-    const linesCount = assetInput.split('\n').filter(line => line.trim()).length;
+    const parsedAssetsInput = parseClientInput(assetInput);
+    const linesCount = parsedAssetsInput.length;
     const costPerAssetVal = activeTab === 'ugc' ? 50 : (activeTab === 'mesh' ? 3 : 0);
     const totalCostVal = costPerAssetVal * linesCount;
     if (totalCostVal > 0 && !isUnlimited && (user?.coins || 0) < totalCostVal) {
@@ -690,8 +740,8 @@ export default function SpooferPage() {
 
           {/* Cost Estimate and Coin Validation */}
           {(() => {
-            const lines = assetInput.split('\n').filter(line => line.trim());
-            const totalAssets = lines.length;
+            const parsedAssets = parseClientInput(assetInput);
+            const totalAssets = parsedAssets.length;
             const costPerAsset = activeTab === 'ugc' ? 50 : (activeTab === 'mesh' ? 3 : 0);
             const totalCost = costPerAsset * totalAssets;
             const isUnlimited = user?.role === 'admin' || user?.role === 'top_spender';
